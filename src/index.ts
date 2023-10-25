@@ -1,5 +1,5 @@
-import { getHeadline } from './newScrape/getHeadline.js';
-import initializedWebsocket from './newScrape/treeNews.js';
+import TreeNews from './newScrape/treeNews.js';
+import Headlines from './newScrape/getHeadline.js';
 
 const main = async (): Promise<void> => {
   const sources = [
@@ -14,16 +14,13 @@ const main = async (): Promise<void> => {
       selector: '.live-wirestyles__Title-sc-1xrlfqv-3.fwiqHn',
     },
   ];
-
-  try {
-    initializedWebsocket();
-  } catch (err) {
-    console.error('Failed connecting to tree news websocket: ', err);
-  }
+  const treeNews = new TreeNews(process.env.TREENEWS);
+  treeNews.startPing();
 
   try {
     for (const source of sources) {
-      const headlines = await getHeadline(source.url, source.selector);
+      const headlinesService = new Headlines(source.url);
+      const headlines = await headlinesService.get(source.selector);
       console.log(`${source.name}:\n`, headlines[0]);
     }
   } catch (err) {
