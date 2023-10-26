@@ -4,4 +4,11 @@ export interface TreeNewsMessage {
   link: string;
   time: number;
   _id: string;
+  source: string;
+}
+
+export interface UpbitParams {
+  search: string;
+  page: number;
+  per_page: number;
 }
