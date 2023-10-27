@@ -47,3 +47,13 @@ export interface BinanceData {
     },
   ];
 }
+
+export interface SecData {
+  creator: string;
+  title: string;
+  link: string;
+  pubDate: string;
+  content: string;
+  contentSnippet: string;
+  isoDate: string;
+}
