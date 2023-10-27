@@ -15,7 +15,8 @@ class OpenAiAnalyze {
     try {
       const completion = await this.openai.chat.completions.create({
         messages: [
-          { role: 'user', content: this.promptContent + this.newsHeadline },
+          { role: 'system', content: this.promptContent },
+          { role: 'user', content: this.newsHeadline },
         ],
         model: 'gpt-4',
         temperature: 0,
