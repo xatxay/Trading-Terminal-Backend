@@ -1,10 +1,14 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import Parser from 'rss-parser';
+import { SecData } from '../interface.js';
 
 class NewScraper {
   url: string;
+  parser: Parser;
   constructor(url: string) {
     this.url = url;
+    this.parser = new Parser();
   }
 
   private async fetchHtml(): Promise<string | null> {
@@ -28,6 +32,11 @@ class NewScraper {
       headlines.push(headline);
     });
     return headlines;
+  }
+
+  public async fetchRssPage(): Promise<SecData[]> {
+    const feed = await this.parser.parseURL(this.url);
+    return feed.items as SecData[];
   }
 }
 

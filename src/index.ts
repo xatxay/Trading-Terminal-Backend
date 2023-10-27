@@ -23,6 +23,7 @@ const main = async (): Promise<void> => {
       pageNo: 1,
       pageSize: 1,
     },
+    secUrl = 'https://www.sec.gov/news/pressreleases.rss',
     sources = [
       {
         name: 'theBlock',
@@ -33,11 +34,6 @@ const main = async (): Promise<void> => {
         name: 'Coindesk',
         url: process.env.COINDESKURL,
         selector: process.env.COINDESKSELECTOR,
-      },
-      {
-        name: 'Binance',
-        url: process.env.BINANCEURL,
-        selector: process.env.BINANCESELECTOR,
       },
     ];
 
@@ -62,7 +58,7 @@ const main = async (): Promise<void> => {
       listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`;
 
     console.log(
-      `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}`,
+      `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n`,
     );
   } catch (err) {
     console.error('Failed getting upbit listing: ', err);
@@ -79,10 +75,25 @@ const main = async (): Promise<void> => {
       listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`;
 
     console.log(
-      `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}`,
+      `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n`,
     );
   } catch (err) {
     console.log('Failed getting binance listing: ', err);
+  }
+
+  try {
+    const feed = new NewScraper(secUrl),
+      pressreleases = await feed.fetchRssPage(),
+      title = pressreleases[0].title,
+      link = pressreleases[0].link,
+      contentSnippet = pressreleases[0].contentSnippet,
+      date = pressreleases[0].isoDate;
+
+    console.log(
+      `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}`,
+    );
+  } catch (err) {
+    console.error('Error fetching SEC rss data: ', err);
   }
 };
 
