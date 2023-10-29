@@ -3,6 +3,7 @@ import TreeNews from './newScrape/treeNews.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
 import { ExchangeHeader, ExchangeParams } from './interface.js';
+import BybitTrading from './newScrape/bybit.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY,
@@ -29,7 +30,7 @@ const main = async (): Promise<void> => {
       for (const source of sources) {
         const newsHeadline = new NewScraper(source.url);
         const headlines = await newsHeadline.scrapeHeadline(source.selector);
-        console.log(`${source.name}:\n`, headlines[0]);
+        console.log(`${source.name}:\n`, headlines[0], '\n------\n');
         // const analyzer = new OpenAiAnalyze(apiKey, prompt, headlines[0]);
         // analyzer.callOpenAi();
       }
@@ -55,7 +56,7 @@ const main = async (): Promise<void> => {
         listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`;
 
       console.log(
-        `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n`,
+        `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,
       );
     } catch (err) {
       console.error('Failed getting upbit listing: ', err);
@@ -80,7 +81,7 @@ const main = async (): Promise<void> => {
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`;
 
       console.log(
-        `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n`,
+        `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
     } catch (err) {
       console.log('Failed getting binance listing: ', err);
@@ -98,10 +99,20 @@ const main = async (): Promise<void> => {
         date = pressreleases[0].isoDate;
 
       console.log(
-        `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}`,
+        `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
       );
     } catch (err) {
       console.error('Error fetching SEC rss data: ', err);
+    }
+  };
+
+  const bybit = async (): Promise<void> => {
+    try {
+      const bybitSubmit = new BybitTrading();
+      await bybitSubmit.submitOrder();
+      await bybitSubmit.getWalletBalance();
+    } catch (err) {
+      console.error('Failed submitting order: ', err);
     }
   };
 
@@ -110,6 +121,7 @@ const main = async (): Promise<void> => {
     upbitScrape(),
     binanceScrape(),
     secScrape(),
+    bybit(),
   ]);
 };
 

@@ -7,7 +7,7 @@ import {
   BinanceData,
 } from '../interface.js';
 
-class Exchange<T> {
+abstract class Exchange<T> {
   protected url: string;
   protected params: ExchangeParams;
   protected config: ExchangeConfig;
