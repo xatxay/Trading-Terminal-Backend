@@ -1,12 +1,17 @@
 import TreeNews from './newScrape/treeNews.js';
-// import OpenAiAnalyze from './newScrape/chatgpt.js';
+import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import { ExchangeHeader, ExchangeParams } from './interface.js';
-import BybitTrading from './newScrape/bybit.js';
+import {
+  ExchangeHeader,
+  ExchangeParams,
+  TickerAndSentiment,
+} from './interface.js';
+import { extractString } from './newScrape/utils.js';
+// import BybitTrading from './newScrape/bybit.js';
 
 const main = async (): Promise<void> => {
-  // const apiKey = process.env.OPENAI_API_KEY,
+  const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
 
   treeNews.startPing();
@@ -26,19 +31,15 @@ const main = async (): Promise<void> => {
         upbitListing = await upbit.getListing(),
         timeStampt = upbitListing.list[0].created_at,
         listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`,
-        upbitAnnouncementTitle =
-          'Upbit announcement: ' + upbitListing.list[0].title;
-      const ticker = upbit.getTicker(upbitListing.list[0].title),
-        ticketPair = `${ticker}USDT`;
+        regex = /\[Trade\] New digital asset on KRW Market \(([^)]+)\)/;
 
-      console.log('@@@@@: ', upbitAnnouncementTitle, 'ticker: ', ticketPair);
-      const bybitSubmit = new BybitTrading(ticketPair);
-      await bybitSubmit.submitOrder();
-      // console.log('sentiment score: ', sentimentScore);
-      // if (sentimentScore >= 75) {
-      //   console.log('sentiment score over 75 -> entered long');
-      //   await bybit();
-      // }
+      const ticker = upbit.getTicker(upbitListing.list[0].title, regex),
+        tickerPair = `${ticker}USDT`;
+
+      console.log('@@@@@: ', tickerPair);
+      // const bybitSubmit = new BybitTrading(ticketPair);
+      // await bybitSubmit.submitOrder();
+
       console.log(
         `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,
       );
@@ -62,20 +63,24 @@ const main = async (): Promise<void> => {
         textFormat = binanceListing.articles[0].title
           .toLowerCase()
           .replaceAll(' ', '-'),
-        listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`;
-      // binanceAnnouncementListing =
-      //   'Binance announcement: ' + binanceListing.articles[0].title;
-      //   analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-      //   sentimentScoreString = await analyzer.callOpenAi(),
-      //   sentimentScore = Number(sentimentScoreString);
+        listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
+        binanceAnnouncementListing = binanceListing.articles[0].title,
+        analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+        response = await analyzer.callOpenAi();
 
-      // if (sentimentScore >= 75) {
-      //   console.log('sentiment score over 75 -> entered long');
-      // await bybit();
-      // }
-      // console.log('sentiment score: ', sentimentScore);
+      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+
+      for (const sentiment of companyAndSentiment) {
+        if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
+          console.log('Trade entered with ticker: ', sentiment.ticker);
+          // const bybitSubmit = new BybitTrading(sentiment.ticker);
+          // await bybitSubmit.submitOrder();
+        }
+      }
+
+      console.log('sentiment score: ', companyAndSentiment);
       console.log(
-        `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
+        `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
     } catch (err) {
       console.log('Failed getting binance listing: ', err);
@@ -92,6 +97,11 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
+      const analyzer = new OpenAiAnalyze(apiKey, title);
+      const response = await analyzer.callOpenAi();
+      const TickerAndSentiment = extractString(response);
+      console.log('SEC analyze: ', TickerAndSentiment);
+
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
       );
@@ -99,15 +109,6 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
-
-  // const bybit = async (): Promise<void> => {
-  //   try {
-  //     const bybitSubmit = new BybitTrading();
-  //     await bybitSubmit.submitOrder();
-  //   } catch (err) {
-  //     console.error('Failed submitting order: ', err);
-  //   }
-  // };
 
   await Promise.all([upbitScrape(), binanceScrape(), secScrape()]);
 };

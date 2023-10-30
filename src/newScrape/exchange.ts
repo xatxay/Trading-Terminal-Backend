@@ -32,9 +32,9 @@ class Upbit extends Exchange<UpbitData> {
     this.config.headers = header;
   }
 
-  public getTicker = (listing: string): string | null => {
-    const regex = /\(([^)]+)\)/;
+  public getTicker = (listing: string, regex: RegExp): string | null => {
     const checkMatching = listing.match(regex);
+    console.log('type: ', typeof regex);
     return checkMatching ? checkMatching[1] : null;
   };
 }

@@ -57,3 +57,8 @@ export interface SecData {
   contentSnippet: string;
   isoDate: string;
 }
+
+export interface TickerAndSentiment {
+  ticker: string;
+  sentiment: number;
+}
