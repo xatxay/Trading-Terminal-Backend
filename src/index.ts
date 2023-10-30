@@ -1,17 +1,14 @@
 import TreeNews from './newScrape/treeNews.js';
-import OpenAiAnalyze from './newScrape/chatgpt.js';
+// import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import {
-  ExchangeHeader,
-  ExchangeParams,
-  TickerAndSentiment,
-} from './interface.js';
-import { extractString } from './newScrape/utils.js';
+import { ExchangeHeader, ExchangeParams } from './interface.js';
+import createProxyDatabase from './proxy/createProxyDb.js';
+// import { extractString } from './newScrape/utils.js';
 // import BybitTrading from './newScrape/bybit.js';
 
 const main = async (): Promise<void> => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  // const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
 
   treeNews.startPing();
@@ -64,21 +61,21 @@ const main = async (): Promise<void> => {
           .toLowerCase()
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
-        binanceAnnouncementListing = binanceListing.articles[0].title,
-        analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-        response = await analyzer.callOpenAi();
+        binanceAnnouncementListing = binanceListing.articles[0].title;
+      // analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+      // response = await analyzer.callOpenAi();
 
-      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
-      for (const sentiment of companyAndSentiment) {
-        if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
-          console.log('Trade entered with ticker: ', sentiment.ticker);
-          // const bybitSubmit = new BybitTrading(sentiment.ticker);
-          // await bybitSubmit.submitOrder();
-        }
-      }
+      // for (const sentiment of companyAndSentiment) {
+      //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
+      //     console.log('Trade entered with ticker: ', sentiment.ticker);
+      //     // const bybitSubmit = new BybitTrading(sentiment.ticker);
+      //     // await bybitSubmit.submitOrder();
+      //   }
+      // }
 
-      console.log('sentiment score: ', companyAndSentiment);
+      // console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -97,10 +94,10 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      const analyzer = new OpenAiAnalyze(apiKey, title);
-      const response = await analyzer.callOpenAi();
-      const TickerAndSentiment = extractString(response);
-      console.log('SEC analyze: ', TickerAndSentiment);
+      // const analyzer = new OpenAiAnalyze(apiKey, title);
+      // const response = await analyzer.callOpenAi();
+      // const TickerAndSentiment = extractString(response);
+      // console.log('SEC analyze: ', TickerAndSentiment);
 
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
@@ -110,7 +107,12 @@ const main = async (): Promise<void> => {
     }
   };
 
-  await Promise.all([upbitScrape(), binanceScrape(), secScrape()]);
+  await Promise.all([
+    upbitScrape(),
+    binanceScrape(),
+    secScrape(),
+    createProxyDatabase('proxyCreate.sql'),
+  ]);
 };
 
 main();

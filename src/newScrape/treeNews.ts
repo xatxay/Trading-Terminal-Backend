@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
 import { extractTreeNewsData } from './utils.js';
-import OpenAiAnalyze from './chatgpt.js';
+// import OpenAiAnalyze from './chatgpt.js';
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ class TreeNews {
 
   private async onMessage(data: WebSocket.RawData): Promise<void> {
     let newsHeadline: string;
-    const apiKey = process.env.OPENAI_API_KEY;
+    // const apiKey = process.env.OPENAI_API_KEY;
     const messageObj = extractTreeNewsData(data);
     if (messageObj.source) {
       newsHeadline = messageObj.title;
@@ -34,9 +34,9 @@ class TreeNews {
       newsHeadline = messageObj.body;
     }
     console.log('Tree News: ', newsHeadline);
-    const analyzer = new OpenAiAnalyze(apiKey, newsHeadline);
-    const response = await analyzer.callOpenAi();
-    console.log('Chatgpt response: ', response);
+    // const analyzer = new OpenAiAnalyze(apiKey, newsHeadline);
+    // const response = await analyzer.callOpenAi();
+    // console.log('Chatgpt response: ', response);
   }
 
   private onError(err: Error): void {
