@@ -1,96 +1,110 @@
 import * as crypto from 'crypto';
-import axios from 'axios';
-import { RestClientV5 } from 'bybit-api';
+import {
+  RestClientV5,
+  OrderTypeV5,
+  CategoryV5,
+  OrderTimeInForceV5,
+} from 'bybit-api';
 
 class BybitTrading {
-  private url: string;
-  private apiKey: string;
-  private apiSecret: string;
-  private timestamp: string;
-  private recvWindow: number;
-  private client;
+  private client: RestClientV5;
+  private category: CategoryV5 = 'linear';
+  private orderType: OrderTypeV5 = 'Limit'; //change later when use///////!!!!!!@@@@@@
+  private quantity: string;
+  private timeInForce: OrderTimeInForceV5 = 'GTC';
+  private symbol: string;
+  private leverage: string = '10';
+  private price: string | number;
 
-  constructor() {
-    this.url = process.env.BYBITURL;
-    this.apiKey = process.env.BYBITAPIKEY;
-    this.apiSecret = process.env.BYBITSECRET;
-    this.timestamp = Date.now().toString();
-    this.recvWindow = 5000;
+  constructor(symbol: string) {
     this.client = new RestClientV5({
       key: process.env.BYBITAPIKEY,
       secret: process.env.BYBITSECRET,
     });
+    this.symbol = symbol;
   }
 
-  private generateSignature(data: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(this.timestamp + this.apiKey + this.recvWindow + data)
-      .digest('hex');
-  }
-
-  private async sendRequest(
-    endpoint: string,
-    method: string,
-    data: string,
-    Info: string,
-  ): Promise<void> {
-    const sign = this.generateSignature(data, this.apiSecret);
-    let fullendpoint: string;
-
-    if (method === 'POST') {
-      fullendpoint = this.url + endpoint;
-    } else {
-      fullendpoint = this.url + endpoint + '?' + data;
-      data = '';
-    }
-
-    const headers = {
-      'X-BAPI-SIGN-TYPE': '2',
-      'X-BAPI-SIGN': sign,
-      'X-BAPI-API-KEY': this.apiKey,
-      'X-BAPI-TIMESTAMP': this.timestamp,
-      'X-BAPI-RECV-WINDOW': this.recvWindow.toString(),
-    };
-
-    if (method === 'POST') {
-      headers['Content-Type'] = 'application/json; charset=utf-8';
-    }
-
-    const config = {
-      method: method,
-      url: fullendpoint,
-      headers: headers,
-      data: data,
-    };
-
-    console.log(Info + 'Calling...');
-    await axios(config)
-      .then((response) => {
-        console.log('sending trade: ', JSON.stringify(response.data));
-      })
-      .catch((err) => {
-        console.log('error sending trade: ', err.response.data);
+  private async getAssetPrice(): Promise<number> {
+    try {
+      const response = await this.client.getTickers({
+        category: this.category,
+        symbol: this.symbol,
       });
+      const price = Number(response.result.list[0].lastPrice);
+      console.log(`${this.symbol} last price: ${price}`);
+      return price;
+    } catch (err) {
+      console.error('Failed getting asset price: ', err);
+      throw err;
+    }
   }
 
-  public async getWalletBalance(): Promise<void> {
+  private async getWalletBalance(): Promise<number> {
     try {
       const response = await this.client.getWalletBalance({
         accountType: 'UNIFIED',
         coin: 'USDT',
       });
-      console.log('balance: ', response.result);
+      const totalWalletBalance = response.result.list[0].totalWalletBalance;
+      console.log('balance: ', totalWalletBalance);
+      return Number(totalWalletBalance);
     } catch (err) {
       console.error('Failed getting balance: ', err);
+      throw err;
+    }
+  }
+
+  private async calculatePositionSize(): Promise<string> {
+    try {
+      const assetPrice = await this.getAssetPrice(),
+        walletBalance = await this.getWalletBalance(),
+        positionSizeNumber =
+          walletBalance * Number(this.leverage) * 0.25 * assetPrice,
+        positionSize = positionSizeNumber.toFixed(0).toString();
+      console.log('Position size: ', positionSize);
+      return positionSize;
+    } catch (err) {
+      console.error('Failed calculating position size: ', err);
+      throw err;
+    }
+  }
+
+  private async setLeverage(): Promise<void> {
+    try {
+      const response = await this.client.setLeverage({
+        category: 'linear',
+        symbol: this.symbol,
+        buyLeverage: this.leverage,
+        sellLeverage: this.leverage,
+      });
+      console.log('Setleverage response: ', response);
+    } catch (err) {
+      console.error('Failed setting leverage: ', err);
     }
   }
 
   public async submitOrder(): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
-    const endpoint = '/v5/order/create';
-    const data = `{"category":"linear","symbol": "BTCUSDT","side": "Buy","positionIdx": 1,"orderType": "Limit","qty": "0.001","price": "33000","timeInForce": "GTC","orderLinkId": "${orderLinkId}"}`;
-    await this.sendRequest(endpoint, 'POST', data, 'Create');
+    try {
+      await this.setLeverage();
+      this.quantity = await this.calculatePositionSize();
+      this.price = await this.getAssetPrice();
+
+      const response = await this.client.submitOrder({
+        category: this.category,
+        symbol: this.symbol,
+        side: 'Buy',
+        orderType: this.orderType,
+        qty: this.quantity,
+        price: this.price.toString(),
+        timeInForce: this.timeInForce,
+        orderLinkId: `${orderLinkId}`,
+      });
+
+      console.log('Submit order response: ', response);
+    } catch (err) {
+      console.error('Failed submitting order: ', err);
+    }
   }
 }
 

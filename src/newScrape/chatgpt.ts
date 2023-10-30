@@ -3,28 +3,29 @@ import OpenAI from 'openai';
 class OpenAiAnalyze {
   private openai: OpenAI;
   private promptContent: string;
-  public newsHeadline: string;
+  private newsHeadline: string;
+  private systemContent: string;
 
-  constructor(apiKey: string, promptContent: string, newsHeadline: string) {
-    this.promptContent = promptContent;
+  constructor(apiKey: string, newsHeadline: string) {
+    this.promptContent = process.env.CONTENT;
     this.openai = new OpenAI({ apiKey: apiKey });
     this.newsHeadline = newsHeadline;
+    this.systemContent = process.env.SYSTEMCONTENT;
   }
 
-  public callOpenAi = async (): Promise<void> => {
+  public callOpenAi = async (): Promise<string> => {
     try {
       const completion = await this.openai.chat.completions.create({
         messages: [
-          { role: 'system', content: this.promptContent },
-          { role: 'user', content: this.newsHeadline },
+          { role: 'system', content: this.systemContent },
+          { role: 'user', content: this.promptContent + this.newsHeadline },
         ],
         model: 'gpt-4',
-        temperature: 0,
       });
-      console.log(this.promptContent + this.newsHeadline);
-      console.log('chatgpt response: ', completion.choices[0].message);
+      return completion.choices[0].message.content;
     } catch (err) {
       console.error('Error getting chatgpt response: ', err);
+      throw err;
     }
   };
 }

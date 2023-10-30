@@ -31,6 +31,12 @@ class Upbit extends Exchange<UpbitData> {
     super(url, params);
     this.config.headers = header;
   }
+
+  public getTicker = (listing: string): string | null => {
+    const regex = /\(([^)]+)\)/;
+    const checkMatching = listing.match(regex);
+    return checkMatching ? checkMatching[1] : null;
+  };
 }
 
 class Binance extends Exchange<BinanceData> {}

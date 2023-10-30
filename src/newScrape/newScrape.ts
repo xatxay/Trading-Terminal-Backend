@@ -41,3 +41,28 @@ class NewScraper {
 }
 
 export default NewScraper;
+
+/*const newsOutlet = async (): Promise<void> => {
+    try {
+      const sources = [
+        {
+          name: 'theBlock',
+          url: process.env.THEBLOCKURL,
+          selector: process.env.THEBLOCKSELECTOR,
+        },
+        {
+          name: 'Coindesk',
+          url: process.env.COINDESKURL,
+          selector: process.env.COINDESKSELECTOR,
+        },
+      ];
+
+      for (const source of sources) {
+        const newsHeadline = new NewScraper(source.url);
+        const headlines = await newsHeadline.scrapeHeadline(source.selector);
+        console.log(`${source.name}:\n`, headlines[0], '\n------\n');
+      }
+    } catch (err) {
+      console.error('Failed getting headlines: ', err);
+    }
+  };*/

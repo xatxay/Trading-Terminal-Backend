@@ -7,37 +7,9 @@ import BybitTrading from './newScrape/bybit.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY,
-  //   prompt = process.env.CONTENT;
   const treeNews = new TreeNews(process.env.TREENEWS);
 
   treeNews.startPing();
-
-  const newsOutlet = async (): Promise<void> => {
-    try {
-      const sources = [
-        {
-          name: 'theBlock',
-          url: process.env.THEBLOCKURL,
-          selector: process.env.THEBLOCKSELECTOR,
-        },
-        {
-          name: 'Coindesk',
-          url: process.env.COINDESKURL,
-          selector: process.env.COINDESKSELECTOR,
-        },
-      ];
-
-      for (const source of sources) {
-        const newsHeadline = new NewScraper(source.url);
-        const headlines = await newsHeadline.scrapeHeadline(source.selector);
-        console.log(`${source.name}:\n`, headlines[0], '\n------\n');
-        // const analyzer = new OpenAiAnalyze(apiKey, prompt, headlines[0]);
-        // analyzer.callOpenAi();
-      }
-    } catch (err) {
-      console.error('Failed getting headlines: ', err);
-    }
-  };
 
   const upbitScrape = async (): Promise<void> => {
     try {
@@ -53,8 +25,20 @@ const main = async (): Promise<void> => {
         upbit = new Upbit(upbitUrl, upbitParams, upbitHeader),
         upbitListing = await upbit.getListing(),
         timeStampt = upbitListing.list[0].created_at,
-        listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`;
+        listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`,
+        upbitAnnouncementTitle =
+          'Upbit announcement: ' + upbitListing.list[0].title;
+      const ticker = upbit.getTicker(upbitListing.list[0].title),
+        ticketPair = `${ticker}USDT`;
 
+      console.log('@@@@@: ', upbitAnnouncementTitle, 'ticker: ', ticketPair);
+      const bybitSubmit = new BybitTrading(ticketPair);
+      await bybitSubmit.submitOrder();
+      // console.log('sentiment score: ', sentimentScore);
+      // if (sentimentScore >= 75) {
+      //   console.log('sentiment score over 75 -> entered long');
+      //   await bybit();
+      // }
       console.log(
         `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,
       );
@@ -79,7 +63,17 @@ const main = async (): Promise<void> => {
           .toLowerCase()
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`;
+      // binanceAnnouncementListing =
+      //   'Binance announcement: ' + binanceListing.articles[0].title;
+      //   analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+      //   sentimentScoreString = await analyzer.callOpenAi(),
+      //   sentimentScore = Number(sentimentScoreString);
 
+      // if (sentimentScore >= 75) {
+      //   console.log('sentiment score over 75 -> entered long');
+      // await bybit();
+      // }
+      // console.log('sentiment score: ', sentimentScore);
       console.log(
         `Binance Listing: ${binanceListing.articles[0].title}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -106,23 +100,16 @@ const main = async (): Promise<void> => {
     }
   };
 
-  const bybit = async (): Promise<void> => {
-    try {
-      const bybitSubmit = new BybitTrading();
-      await bybitSubmit.submitOrder();
-      await bybitSubmit.getWalletBalance();
-    } catch (err) {
-      console.error('Failed submitting order: ', err);
-    }
-  };
+  // const bybit = async (): Promise<void> => {
+  //   try {
+  //     const bybitSubmit = new BybitTrading();
+  //     await bybitSubmit.submitOrder();
+  //   } catch (err) {
+  //     console.error('Failed submitting order: ', err);
+  //   }
+  // };
 
-  await Promise.all([
-    newsOutlet(),
-    upbitScrape(),
-    binanceScrape(),
-    secScrape(),
-    bybit(),
-  ]);
+  await Promise.all([upbitScrape(), binanceScrape(), secScrape()]);
 };
 
 main();

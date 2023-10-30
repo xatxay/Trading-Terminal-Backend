@@ -24,16 +24,6 @@
     "ts-jest": "~29.1",
     "typescript": "~5.1"
   },
-  "nodemonConfig": {
-    "watch": [
-      "build"
-    ],
-    "ext": "js",
-    "ignore": [
-      "*.test.js"
-    ],
-    "exec": "node build/src/index.js"
-  },
   "scripts": {
     "start": "node build/src/index.js",
     "dev": "concurrently -k \"npm run build:watch\" \"nodemon\"",
