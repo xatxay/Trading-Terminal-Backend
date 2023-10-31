@@ -24,6 +24,10 @@ export interface ExchangeHeader {
 export interface ExchangeConfig {
   params: ExchangeParams;
   headers?: ExchangeHeader;
+  proxy?: {
+    host: string;
+    port: number;
+  };
 }
 
 export interface UpbitData {
