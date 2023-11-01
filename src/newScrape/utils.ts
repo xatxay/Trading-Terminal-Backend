@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
 import { TreeNewsMessage } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
-import { selectProxy } from '../proxy/manageDb.js';
-import ProxyManager from '../proxy/proxyManager.js';
+// import { selectProxy } from '../proxy/manageDb.js';
+// import ProxyManager from '../proxy/proxyManager.js';
 
 function extractTreeNewsData(data: WebSocket.RawData): TreeNewsMessage {
   const messageString = data.toString('utf-8'),
@@ -21,12 +21,12 @@ const extractString = (response: string): TickerAndSentiment[] => {
   });
 };
 
-const proxyManage = async (): Promise<string> => {
-  const allProxies = await selectProxy();
-  const proxy = new ProxyManager(allProxies);
-  const nextProxy = proxy.getNextProxy();
-  console.log('current proxy: ', nextProxy);
-  return nextProxy;
-};
+// const proxyManage = async (): Promise<string> => {
+//   const allProxies = await selectProxy();
+//   const proxy = new ProxyManager(allProxies);
+//   const nextProxy = proxy.getNextProxy();
+//   console.log('current proxy: ', nextProxy);
+//   return nextProxy;
+// };
 
-export { extractTreeNewsData, extractString, proxyManage };
+export { extractTreeNewsData, extractString };

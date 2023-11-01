@@ -88,7 +88,8 @@ class BybitTrading {
     try {
       await this.setLeverage();
       this.quantity = await this.calculatePositionSize();
-      this.price = await this.getAssetPrice();
+      // this.price = await this.getAssetPrice();
+      this.price = 0.55; //for testing
 
       const response = await this.client.submitOrder({
         category: this.category,

@@ -27,9 +27,9 @@ const createProxyDatabase = async (fileName: string): Promise<void> => {
 
 const insertProxy = async (): Promise<void> => {
   try {
-    const proxies = [];
+    const proxies = ['test'];
+    console.log('Inserted proxies to database');
     for (const proxy of proxies) {
-      console.log('loop proxy: ', proxy);
       await pool.query(
         `INSERT INTO proxy (proxy) VALUES ($1) ON CONFLICT (proxy) DO NOTHING`,
         [proxy],

@@ -25,10 +25,20 @@ export interface ExchangeConfig {
   params: ExchangeParams;
   headers?: ExchangeHeader;
   proxy?: {
+    protocol: string;
     host: string;
     port: number;
+    auth?: {
+      username: string;
+      password: string;
+    };
   };
 }
+
+// interface Auth {
+//   username: string;
+//   password: string;
+// }
 
 export interface UpbitData {
   list?: [

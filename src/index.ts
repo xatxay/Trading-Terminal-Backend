@@ -2,13 +2,20 @@ import TreeNews from './newScrape/treeNews.js';
 import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import { ExchangeHeader, ExchangeParams } from './interface.js';
+import {
+  ExchangeHeader,
+  ExchangeParams,
+  TickerAndSentiment,
+} from './interface.js';
 import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
+import { selectProxy } from './proxy/manageDb.js';
+import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
 
 const main = async (): Promise<void> => {
   const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
+  const allProxies = await selectProxy();
 
   treeNews.startPing();
 
@@ -23,7 +30,7 @@ const main = async (): Promise<void> => {
         upbitHeader: ExchangeHeader = {
           'accept-language': 'en-KR, en;q=1, en;q=0.1',
         },
-        upbit = new Upbit(upbitUrl, upbitParams, upbitHeader),
+        upbit = new Upbit(upbitUrl, upbitParams, upbitHeader, allProxies),
         upbitListing = await upbit.getListing(),
         timeStampt = upbitListing.list[0].created_at,
         listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`,
@@ -54,17 +61,17 @@ const main = async (): Promise<void> => {
         },
         time = new Date(Date.now()),
         announcementTime = time.toISOString(),
-        binance = new Binance(binanceUrl, binanceParams),
+        binance = new Binance(binanceUrl, binanceParams, allProxies),
         binanceListing = await binance.getListing(),
         textFormat = binanceListing.articles[0].title
           .toLowerCase()
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      // analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing);
-      // response = await analyzer.callOpenAi();
+      const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+        response = await analyzer.callOpenAi();
 
-      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
       // for (const sentiment of companyAndSentiment) {
       //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
@@ -74,7 +81,7 @@ const main = async (): Promise<void> => {
       //   }
       // }
 
-      // console.log('sentiment score: ', companyAndSentiment);
+      console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -93,10 +100,10 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      const analyzer = new OpenAiAnalyze(apiKey, title);
-      const response = await analyzer.callOpenAi();
-      const TickerAndSentiment = extractString(response);
-      console.log('SEC analyze: ', TickerAndSentiment);
+      // const analyzer = new OpenAiAnalyze(apiKey, title);
+      // const response = await analyzer.callOpenAi();
+      // const TickerAndSentiment = extractString(response);
+      // console.log('SEC analyze: ', TickerAndSentiment);
 
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
@@ -106,9 +113,9 @@ const main = async (): Promise<void> => {
     }
   };
 
-  // await createProxyDatabase('proxyCreate.sql');
-  // await insertProxy();
   await Promise.all([upbitScrape(), binanceScrape(), secScrape()]);
 };
 
+await createProxyDatabase('proxyCreate.sql');
 setInterval(() => main(), 15000); //or use node-cron
+await insertProxy();
