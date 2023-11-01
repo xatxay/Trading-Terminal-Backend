@@ -9,13 +9,13 @@ import {
 } from './interface.js';
 import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
-import { selectProxy } from './proxy/manageDb.js';
-import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
+// import { selectProxy } from './proxy/manageDb.js';
+// import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
 
 const main = async (): Promise<void> => {
   const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
-  const allProxies = await selectProxy();
+  // const allProxies = await selectProxy();
 
   treeNews.startPing();
 
@@ -30,7 +30,7 @@ const main = async (): Promise<void> => {
         upbitHeader: ExchangeHeader = {
           'accept-language': 'en-KR, en;q=1, en;q=0.1',
         },
-        upbit = new Upbit(upbitUrl, upbitParams, upbitHeader, allProxies),
+        upbit = new Upbit(upbitUrl, upbitParams, upbitHeader),
         upbitListing = await upbit.getListing(),
         timeStampt = upbitListing.list[0].created_at,
         listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`,
@@ -61,7 +61,7 @@ const main = async (): Promise<void> => {
         },
         time = new Date(Date.now()),
         announcementTime = time.toISOString(),
-        binance = new Binance(binanceUrl, binanceParams, allProxies),
+        binance = new Binance(binanceUrl, binanceParams),
         binanceListing = await binance.getListing(),
         textFormat = binanceListing.articles[0].title
           .toLowerCase()
@@ -113,9 +113,13 @@ const main = async (): Promise<void> => {
     }
   };
 
-  await Promise.all([upbitScrape(), binanceScrape(), secScrape()]);
+  setInterval(
+    async () =>
+      await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
+    15000,
+  ); //or use node-cron
 };
 
-await createProxyDatabase('proxyCreate.sql');
-setInterval(() => main(), 15000); //or use node-cron
-await insertProxy();
+// await createProxyDatabase('proxyCreate.sql');
+main();
+// await insertProxy();

@@ -1,3 +1,5 @@
+import https from 'https';
+
 export interface TreeNewsMessage {
   title: string;
   body: string;
@@ -14,6 +16,7 @@ export interface ExchangeParams {
   catalogId?: number;
   pageNo?: number;
   pageSize?: number;
+  httpsAgent?: https.Agent;
 }
 
 export interface ExchangeHeader {
@@ -24,6 +27,7 @@ export interface ExchangeHeader {
 export interface ExchangeConfig {
   params: ExchangeParams;
   headers?: ExchangeHeader;
+  httpsAgent?: https.Agent;
   proxy?: {
     protocol: string;
     host: string;

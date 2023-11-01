@@ -6,18 +6,18 @@ import {
   UpbitData,
   BinanceData,
 } from '../interface.js';
-import ProxyManager from '../proxy/proxyManager.js';
+// import ProxyManager from '../proxy/proxyManager.js';
 
 abstract class Exchange<T> {
   protected url: string;
   protected params: ExchangeParams;
   protected config: ExchangeConfig;
-  protected proxies: ProxyManager;
+  // protected proxies: ProxyManager;
 
-  constructor(url: string, params: ExchangeParams, allProxies: string[]) {
+  constructor(url: string, params: ExchangeParams) {
     this.url = url;
     this.params = params;
-    this.proxies = new ProxyManager(allProxies);
+    // this.proxies = new ProxyManager(allProxies);
     this.config = {
       params: this.params,
     };
@@ -25,19 +25,21 @@ abstract class Exchange<T> {
 
   public getListing = async (): Promise<T | null> => {
     try {
-      const currentProxies = this.proxies.getNextProxy();
-      this.config.proxy = {
-        protocol: 'https',
-        host: currentProxies.split(':')[0],
-        port: parseInt(currentProxies.split(':')[1]),
-        auth: {
-          username: currentProxies.split(':')[2],
-          password: currentProxies.split(':')[3],
-        },
-      };
-      console.log('Sending request with proxy: ', this.config.proxy);
+      // const currentProxies = this.proxies.getNextProxy();
+      // console.log('CURRENT PROXIES: ', currentProxies);
+      // this.config.proxy = {
+      //   protocol: 'https',
+      //   host: currentProxies.split(':')[0],
+      //   port: parseInt(currentProxies.split(':')[1]),
+      //   auth: {
+      //     username: currentProxies.split(':')[2],
+      //     password: currentProxies.split(':')[3],
+      //   },
+      // };
+      console.log('this.url: ', this.url);
+      // console.log('Sending request with proxy: ', this.config.proxy);
       const response = await axios.get(this.url, this.config);
-      this.proxies.getNextProxy();
+      // this.proxies.getNextProxy();
       return response.data.data;
     } catch (err) {
       console.error('Error getting listing: ', err);
@@ -51,9 +53,9 @@ class Upbit extends Exchange<UpbitData> {
     url: string,
     params: ExchangeParams,
     header: ExchangeHeader,
-    allProxies: string[],
+    // allProxies: string[],
   ) {
-    super(url, params, allProxies);
+    super(url, params);
     this.config.headers = header;
   }
 
