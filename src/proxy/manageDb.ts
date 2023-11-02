@@ -27,7 +27,10 @@ const createProxyDatabase = async (fileName: string): Promise<void> => {
 
 const insertProxy = async (): Promise<void> => {
   try {
-    const proxies = ['test'];
+    const proxies = [
+      '166.1.14.148:50100:jametrades618:NngLeDgrDC',
+      '149.51.71.208:7665:OR1669646137:SLrh2dPs',
+    ];
     console.log('Inserted proxies to database');
     for (const proxy of proxies) {
       await pool.query(

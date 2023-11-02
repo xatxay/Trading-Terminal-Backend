@@ -9,28 +9,29 @@ import {
 } from './interface.js';
 import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
-// import { selectProxy } from './proxy/manageDb.js';
-// import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
+import { selectProxy } from './proxy/manageDb.js';
+import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
 
 const main = async (): Promise<void> => {
   const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
-  // const allProxies = await selectProxy();
+  const allProxies = await selectProxy();
+  console.log('main all proxies: ', allProxies);
 
   treeNews.startPing();
 
   const upbitScrape = async (): Promise<void> => {
     try {
-      const upbitUrl: string = process.env.UPBIT,
-        upbitParams: ExchangeParams = {
+      const upbitUrl: string = process.env.UPBIT;
+      const upbitParams: ExchangeParams = {
           search: process.env.UPBITSEARCH,
           page: 1,
           per_page: 1,
         },
         upbitHeader: ExchangeHeader = {
           'accept-language': 'en-KR, en;q=1, en;q=0.1',
-        },
-        upbit = new Upbit(upbitUrl, upbitParams, upbitHeader),
+        };
+      const upbit = new Upbit(upbitUrl, upbitParams, upbitHeader, allProxies),
         upbitListing = await upbit.getListing(),
         timeStampt = upbitListing.list[0].created_at,
         listingLink = `https://upbit.com/service_center/notice?id=${upbitListing.list[0].id}`,
@@ -53,15 +54,15 @@ const main = async (): Promise<void> => {
 
   const binanceScrape = async (): Promise<void> => {
     try {
-      const binanceUrl = process.env.BINANCEURL,
-        binanceParams: ExchangeParams = {
+      const binanceUrl = process.env.BINANCEURL;
+      const binanceParams: ExchangeParams = {
           catalogId: 48,
           pageNo: 1,
           pageSize: 1,
         },
         time = new Date(Date.now()),
-        announcementTime = time.toISOString(),
-        binance = new Binance(binanceUrl, binanceParams),
+        announcementTime = time.toISOString();
+      const binance = new Binance(binanceUrl, binanceParams, allProxies),
         binanceListing = await binance.getListing(),
         textFormat = binanceListing.articles[0].title
           .toLowerCase()
@@ -120,6 +121,6 @@ const main = async (): Promise<void> => {
   ); //or use node-cron
 };
 
-// await createProxyDatabase('proxyCreate.sql');
+await createProxyDatabase('proxyCreate.sql');
 main();
-// await insertProxy();
+await insertProxy();

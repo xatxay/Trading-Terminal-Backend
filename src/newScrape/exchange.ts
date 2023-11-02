@@ -6,18 +6,19 @@ import {
   UpbitData,
   BinanceData,
 } from '../interface.js';
-// import ProxyManager from '../proxy/proxyManager.js';
+import ProxyManager from '../proxy/proxyManager.js';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 abstract class Exchange<T> {
   protected url: string;
   protected params: ExchangeParams;
   protected config: ExchangeConfig;
-  // protected proxies: ProxyManager;
+  protected proxies: ProxyManager;
 
-  constructor(url: string, params: ExchangeParams) {
+  constructor(url: string, params: ExchangeParams, allProxies: string[]) {
     this.url = url;
     this.params = params;
-    // this.proxies = new ProxyManager(allProxies);
+    this.proxies = new ProxyManager(allProxies);
     this.config = {
       params: this.params,
     };
@@ -25,24 +26,23 @@ abstract class Exchange<T> {
 
   public getListing = async (): Promise<T | null> => {
     try {
-      // const currentProxies = this.proxies.getNextProxy();
-      // console.log('CURRENT PROXIES: ', currentProxies);
-      // this.config.proxy = {
-      //   protocol: 'https',
-      //   host: currentProxies.split(':')[0],
-      //   port: parseInt(currentProxies.split(':')[1]),
-      //   auth: {
-      //     username: currentProxies.split(':')[2],
-      //     password: currentProxies.split(':')[3],
-      //   },
-      // };
-      console.log('this.url: ', this.url);
-      // console.log('Sending request with proxy: ', this.config.proxy);
+      const currentProxies = this.proxies.getNextProxy(),
+        currentProxiesArray = currentProxies.split(':'),
+        proxyUsername = currentProxiesArray[2],
+        proxyPassword = currentProxiesArray[3],
+        proxyHost = currentProxiesArray[0],
+        proxyPort = currentProxiesArray[1];
+      console.log('CURRENT PROXIES: ', currentProxies);
+      const httpsAgent = new HttpsProxyAgent(
+        `http://${proxyUsername}:${proxyPassword}@${proxyHost}:${proxyPort}`,
+      );
+      this.config.httpsAgent = httpsAgent;
       const response = await axios.get(this.url, this.config);
-      // this.proxies.getNextProxy();
+      this.proxies.getNextProxy();
       return response.data.data;
     } catch (err) {
-      console.error('Error getting listing: ', err);
+      console.error('Error getting listing: ', err.response);
+      console.error('Error getting listing message : ', err.message);
       return null;
     }
   };
@@ -53,15 +53,14 @@ class Upbit extends Exchange<UpbitData> {
     url: string,
     params: ExchangeParams,
     header: ExchangeHeader,
-    // allProxies: string[],
+    allProxies: string[],
   ) {
-    super(url, params);
+    super(url, params, allProxies);
     this.config.headers = header;
   }
 
   public getTicker = (listing: string, regex: RegExp): string | null => {
     const checkMatching = listing.match(regex);
-    console.log('type: ', typeof regex);
     return checkMatching ? checkMatching[1] : null;
   };
 }
