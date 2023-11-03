@@ -15,6 +15,7 @@ class BybitTrading {
   private symbol: string;
   private leverage: string = '10';
   private price: string | number;
+  private inPosition: number;
 
   constructor(symbol: string) {
     this.client = new RestClientV5({
@@ -83,13 +84,30 @@ class BybitTrading {
     }
   }
 
+  private async isInPosition(): Promise<number> {
+    try {
+      const response = await this.client.getPositionInfo({
+        category: this.category,
+        symbol: 'BTCUSDT', //change this when use!!!@@@@
+      });
+      console.log('OPEN ORDER: ', response.result.list.length);
+      return response.result.list.length;
+    } catch (err) {
+      console.error('Failed getting open order: ', err);
+      throw err;
+    }
+  }
+
   public async submitOrder(): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     try {
       await this.setLeverage();
       this.quantity = await this.calculatePositionSize();
       // this.price = await this.getAssetPrice();
-      this.price = 0.55; //for testing
+      this.price = 0.45; //for testing
+
+      this.inPosition = await this.isInPosition();
+      if (this.inPosition !== 0) return;
 
       const response = await this.client.submitOrder({
         category: this.category,

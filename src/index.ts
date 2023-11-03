@@ -1,22 +1,16 @@
 import TreeNews from './newScrape/treeNews.js';
-import OpenAiAnalyze from './newScrape/chatgpt.js';
+// import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import {
-  ExchangeHeader,
-  ExchangeParams,
-  Proxy,
-  TickerAndSentiment,
-} from './interface.js';
-import { extractString } from './newScrape/utils.js';
+import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
+// import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 
 const main = async (): Promise<void> => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  // const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
   const allProxies: Proxy[] = convertProxiesToString();
-  console.log('main all proxies: ', allProxies);
 
   treeNews.startPing();
 
@@ -69,10 +63,10 @@ const main = async (): Promise<void> => {
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-        response = await analyzer.callOpenAi();
+      // const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+      //   response = await analyzer.callOpenAi();
 
-      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
       // for (const sentiment of companyAndSentiment) {
       //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
@@ -82,7 +76,7 @@ const main = async (): Promise<void> => {
       //   }
       // }
 
-      console.log('sentiment score: ', companyAndSentiment);
+      // console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
