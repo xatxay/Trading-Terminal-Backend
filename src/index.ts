@@ -5,17 +5,17 @@ import { Binance, Upbit } from './newScrape/exchange.js';
 import {
   ExchangeHeader,
   ExchangeParams,
+  Proxy,
   TickerAndSentiment,
 } from './interface.js';
 import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
-import { selectProxy } from './proxy/manageDb.js';
-import { createProxyDatabase, insertProxy } from './proxy/manageDb.js';
+import convertProxiesToString from './proxy/proxies.js';
 
 const main = async (): Promise<void> => {
   const apiKey = process.env.OPENAI_API_KEY;
   const treeNews = new TreeNews(process.env.TREENEWS);
-  const allProxies = await selectProxy();
+  const allProxies: Proxy[] = convertProxiesToString();
   console.log('main all proxies: ', allProxies);
 
   treeNews.startPing();
@@ -121,6 +121,4 @@ const main = async (): Promise<void> => {
   ); //or use node-cron
 };
 
-await createProxyDatabase('proxyCreate.sql');
 main();
-await insertProxy();

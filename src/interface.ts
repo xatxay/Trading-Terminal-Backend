@@ -29,19 +29,13 @@ export interface ExchangeConfig {
   headers?: ExchangeHeader;
   httpsAgent?: https.Agent;
 }
-// proxy?: {
-//   protocol: string;
-//   host: string;
-//   port: number;
-//   auth?: {
-//     username: string;
-//     password: string;
-//   };
-// };
-// interface Auth {
-//   username: string;
-//   password: string;
-// }
+
+export interface Proxy {
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+}
 
 export interface UpbitData {
   list?: [

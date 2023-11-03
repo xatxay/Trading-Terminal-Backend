@@ -1,18 +1,20 @@
+import { Proxy } from '../interface.js';
+
 class ProxyManager {
-  private proxies: string[];
+  private proxies: Proxy[];
   private currentIndex: number = 0;
 
-  constructor(proxies: string[]) {
+  constructor(proxies: Proxy[]) {
     this.proxies = proxies;
   }
 
-  public getNextProxy(): string {
+  public getNextProxy(): Proxy {
     const proxy = this.proxies[this.currentIndex];
     this.currentIndex = (this.currentIndex + 1) % this.proxies.length;
     return proxy;
   }
 
-  public removeProxy(badProxy: string): void {
+  public removeProxy(badProxy: Proxy): void {
     this.proxies = this.proxies.filter((proxy) => proxy !== badProxy);
   }
 }

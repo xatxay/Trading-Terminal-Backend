@@ -5,6 +5,7 @@ import {
   ExchangeConfig,
   UpbitData,
   BinanceData,
+  Proxy,
 } from '../interface.js';
 import ProxyManager from '../proxy/proxyManager.js';
 import { HttpsProxyAgent } from 'https-proxy-agent';
@@ -15,7 +16,7 @@ abstract class Exchange<T> {
   protected config: ExchangeConfig;
   protected proxies: ProxyManager;
 
-  constructor(url: string, params: ExchangeParams, allProxies: string[]) {
+  constructor(url: string, params: ExchangeParams, allProxies: Proxy[]) {
     this.url = url;
     this.params = params;
     this.proxies = new ProxyManager(allProxies);
@@ -26,15 +27,10 @@ abstract class Exchange<T> {
 
   public getListing = async (): Promise<T | null> => {
     try {
-      const currentProxies = this.proxies.getNextProxy(),
-        currentProxiesArray = currentProxies.split(':'),
-        proxyUsername = currentProxiesArray[2],
-        proxyPassword = currentProxiesArray[3],
-        proxyHost = currentProxiesArray[0],
-        proxyPort = currentProxiesArray[1];
+      const currentProxies = this.proxies.getNextProxy();
       console.log('CURRENT PROXIES: ', currentProxies);
       const httpsAgent = new HttpsProxyAgent(
-        `http://${proxyUsername}:${proxyPassword}@${proxyHost}:${proxyPort}`,
+        `http://${currentProxies.username}:${currentProxies.password}@${currentProxies.host}:${currentProxies.port}`,
       );
       this.config.httpsAgent = httpsAgent;
       const response = await axios.get(this.url, this.config);
@@ -53,7 +49,7 @@ class Upbit extends Exchange<UpbitData> {
     url: string,
     params: ExchangeParams,
     header: ExchangeHeader,
-    allProxies: string[],
+    allProxies: Proxy[],
   ) {
     super(url, params, allProxies);
     this.config.headers = header;
