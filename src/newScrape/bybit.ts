@@ -5,6 +5,7 @@ import {
   CategoryV5,
   OrderTimeInForceV5,
 } from 'bybit-api';
+import { AccountSummary } from '../interface.js';
 
 class BybitTrading {
   private client: RestClientV5;
@@ -40,15 +41,22 @@ class BybitTrading {
     }
   }
 
-  private async getWalletBalance(): Promise<number> {
+  public async getWalletBalance(): Promise<AccountSummary> {
     try {
       const response = await this.client.getWalletBalance({
         accountType: 'UNIFIED',
         coin: 'USDT',
       });
-      const totalWalletBalance = response.result.list[0].totalWalletBalance;
-      console.log('balance: ', totalWalletBalance);
-      return Number(totalWalletBalance);
+      const accountSummary = {
+        totalEquity: Number(response.result.list[0].totalEquity),
+        totalMarginBalance: Number(response.result.list[0].totalMarginBalance),
+        totalAvailableBalance: Number(
+          response.result.list[0].totalAvailableBalance,
+        ),
+        totalPerpUPL: Number(response.result.list[0].totalPerpUPL),
+      };
+      console.log('balance: ', accountSummary);
+      return accountSummary;
     } catch (err) {
       console.error('Failed getting balance: ', err);
       throw err;
@@ -58,9 +66,9 @@ class BybitTrading {
   private async calculatePositionSize(): Promise<string> {
     try {
       const assetPrice = await this.getAssetPrice(),
-        walletBalance = await this.getWalletBalance(),
+        { totalAvailableBalance } = await this.getWalletBalance(),
         positionSizeNumber =
-          walletBalance * Number(this.leverage) * 0.25 * assetPrice,
+          totalAvailableBalance * Number(this.leverage) * 0.25 * assetPrice,
         positionSize = positionSizeNumber.toFixed(0).toString();
       console.log('Position size: ', positionSize);
       return positionSize;
@@ -95,6 +103,19 @@ class BybitTrading {
     } catch (err) {
       console.error('Failed getting open order: ', err);
       throw err;
+    }
+  }
+
+  public async getPricePercentage(): Promise<void> {
+    try {
+      const response = await this.client.getMarkPriceKline({
+        category: 'linear',
+        symbol: 'BTCUSDT',
+        interval: '1',
+      });
+      console.log('price data: ', response.result.list);
+    } catch (err) {
+      console.error('Error getting price data: ', err);
     }
   }
 

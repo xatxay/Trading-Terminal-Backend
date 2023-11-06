@@ -4,7 +4,7 @@ import { TickerAndSentiment } from '../interface.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
-function extractTreeNewsData(data: WebSocket.RawData): TreeNewsMessage {
+function extractWsData(data: WebSocket.RawData): TreeNewsMessage {
   const messageString = data.toString('utf-8'),
     messageObj = JSON.parse(messageString);
   return messageObj;
@@ -29,4 +29,4 @@ const extractString = (response: string): TickerAndSentiment[] => {
 //   return nextProxy;
 // };
 
-export { extractTreeNewsData, extractString };
+export { extractWsData, extractString };

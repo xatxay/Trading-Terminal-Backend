@@ -8,7 +8,7 @@ import {
   Proxy,
 } from '../interface.js';
 import ProxyManager from '../proxy/proxyManager.js';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+// import { HttpsProxyAgent } from 'https-proxy-agent';
 
 abstract class Exchange<T> {
   protected url: string;
@@ -29,10 +29,10 @@ abstract class Exchange<T> {
     try {
       const currentProxies = this.proxies.getNextProxy();
       console.log('CURRENT PROXIES: ', currentProxies);
-      const httpsAgent = new HttpsProxyAgent(
-        `http://${currentProxies.username}:${currentProxies.password}@${currentProxies.host}:${currentProxies.port}`,
-      );
-      this.config.httpsAgent = httpsAgent;
+      // const httpsAgent = new HttpsProxyAgent(
+      //   `http://${currentProxies.username}:${currentProxies.password}@${currentProxies.host}:${currentProxies.port}`,
+      // );
+      // this.config.httpsAgent = httpsAgent;
       const response = await axios.get(this.url, this.config);
       this.proxies.getNextProxy();
       return response.data.data;

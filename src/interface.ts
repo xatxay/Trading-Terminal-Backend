@@ -73,3 +73,14 @@ export interface TickerAndSentiment {
   ticker: string;
   sentiment: number;
 }
+
+export interface AccountSummary {
+  totalEquity: number;
+  totalMarginBalance: number;
+  totalAvailableBalance: number;
+  totalPerpUPL: number;
+}
+
+export interface Wallet {
+  getWalletBalance: () => Promise<AccountSummary>;
+}

@@ -6,13 +6,21 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 // import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
+import Routes from './newScrape/routes.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
-  const treeNews = new TreeNews(process.env.TREENEWS);
   const allProxies: Proxy[] = convertProxiesToString();
 
-  treeNews.startPing();
+  const routesHandling = (): void => {
+    const handleRoutes = new Routes();
+    handleRoutes.getRequest();
+  };
+
+  const treeWebsocket = (): void => {
+    const treeNews = new TreeNews(process.env.TREENEWS);
+    treeNews.startPing();
+  };
 
   const upbitScrape = async (): Promise<void> => {
     try {
@@ -36,6 +44,7 @@ const main = async (): Promise<void> => {
 
       console.log('@@@@@: ', tickerPair);
       const bybitSubmit = new BybitTrading(tickerPair);
+      // await bybitSubmit.getPricePercentage();
       await bybitSubmit.submitOrder();
 
       console.log(
@@ -113,6 +122,8 @@ const main = async (): Promise<void> => {
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
     15000,
   ); //or use node-cron
+  routesHandling();
+  treeWebsocket();
 };
 
 main();
