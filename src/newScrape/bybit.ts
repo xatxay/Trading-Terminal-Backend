@@ -22,6 +22,7 @@ class BybitTrading {
     this.client = new RestClientV5({
       key: process.env.BYBITAPIKEY,
       secret: process.env.BYBITSECRET,
+      enable_time_sync: true,
     });
     this.symbol = symbol;
   }
@@ -32,6 +33,7 @@ class BybitTrading {
         category: this.category,
         symbol: this.symbol,
       });
+      console.log('this.client: ');
       const price = Number(response.result.list[0].lastPrice);
       console.log(`${this.symbol} last price: ${price}`);
       return price;
@@ -47,7 +49,7 @@ class BybitTrading {
         accountType: 'UNIFIED',
         coin: 'USDT',
       });
-      const accountSummary = {
+      const accountSummary: AccountSummary = {
         totalEquity: Number(response.result.list[0].totalEquity),
         totalMarginBalance: Number(response.result.list[0].totalMarginBalance),
         totalAvailableBalance: Number(
@@ -55,7 +57,6 @@ class BybitTrading {
         ),
         totalPerpUPL: Number(response.result.list[0].totalPerpUPL),
       };
-      console.log('balance: ', accountSummary);
       return accountSummary;
     } catch (err) {
       console.error('Failed getting balance: ', err);

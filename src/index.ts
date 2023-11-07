@@ -120,7 +120,7 @@ const main = async (): Promise<void> => {
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
-    15000,
+    1000000,
   ); //or use node-cron
   routesHandling();
   treeWebsocket();

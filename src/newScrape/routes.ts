@@ -10,7 +10,7 @@ class Routes {
 
   constructor() {
     this.app = express();
-    this.PORT = 3000;
+    this.PORT = 5000;
     // this.app.use(express.json());
     this.app.use(cors());
     this.walletBalance = new BybitTrading('');
@@ -20,12 +20,12 @@ class Routes {
 
   private listenPort(): void {
     this.app.listen(this.PORT, () => {
-      console.log(`http://localhost:${this.PORT}/trades`);
+      console.log(`http://localhost:${this.PORT}/accountSummary`);
     });
   }
 
   public getRequest(): void {
-    this.app.get('/trades', async (_req: Request, res: Response) => {
+    this.app.get('/accountSummary', async (_req: Request, res: Response) => {
       try {
         const accountSummary = await this.walletBalance.getWalletBalance();
         res.json(accountSummary);
