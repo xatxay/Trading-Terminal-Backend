@@ -32,8 +32,10 @@ const treeWebsocket = (): TreeNews => {
 };
 
 const sendAccountInfoRequest = (app: Express): void => {
-  const accountSummary = new AccountInfo(app);
+  const accountSummary = new AccountInfo(app, '/accountSummary');
+  const openPosition = new AccountInfo(app, '/positions');
   accountSummary.getRequest();
+  openPosition.getRequest();
 };
 
 const sendTreeNewsRequest = (app: Express): void => {
