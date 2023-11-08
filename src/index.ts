@@ -1,4 +1,3 @@
-import TreeNews from './newScrape/treeNews.js';
 // import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
@@ -6,20 +5,15 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 // import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
-import Routes from './newScrape/routes.js';
+import startServer from './newScrape/server.js';
+// import startServer from './newScrape/server.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
 
   const routesHandling = (): void => {
-    const handleRoutes = new Routes();
-    handleRoutes.getRequest();
-  };
-
-  const treeWebsocket = (): void => {
-    const treeNews = new TreeNews(process.env.TREENEWS);
-    treeNews.startPing();
+    startServer();
   };
 
   const upbitScrape = async (): Promise<void> => {
@@ -117,13 +111,13 @@ const main = async (): Promise<void> => {
     }
   };
 
+  // startServer();
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
     1000000,
   ); //or use node-cron
   routesHandling();
-  treeWebsocket();
 };
 
 main();

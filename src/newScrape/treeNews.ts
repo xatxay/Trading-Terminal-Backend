@@ -1,14 +1,16 @@
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
 import { extractWsData } from './utils.js';
+import { EventEmitter } from 'events';
 // import OpenAiAnalyze from './chatgpt.js';
 
 dotenv.config();
 
-class TreeNews {
+class TreeNews extends EventEmitter {
   private ws: WebSocket;
 
   constructor(url: string) {
+    super();
     this.ws = new WebSocket(url);
     this.setupEvents();
   }
@@ -34,6 +36,7 @@ class TreeNews {
       newsHeadline = messageObj.body;
     }
     console.log('Tree News: ', newsHeadline);
+    this.emit('news', messageObj);
     // const analyzer = new OpenAiAnalyze(apiKey, newsHeadline);
     // const response = await analyzer.callOpenAi();
     // console.log('Chatgpt response: ', response);

@@ -17,6 +17,7 @@ class BybitTrading {
   private leverage: string = '10';
   private price: string | number;
   private inPosition: number;
+  private openPosition: unknown;
 
   constructor(symbol: string) {
     this.client = new RestClientV5({
@@ -107,6 +108,20 @@ class BybitTrading {
     }
   }
 
+  public async getAllOpenPosition(): Promise<unknown> {
+    try {
+      const response = await this.client.getPositionInfo({
+        category: this.category,
+        settleCoin: 'USDT',
+      });
+      console.log('ALL OPENORDER: ', response.result.list);
+      return response.result.list;
+    } catch (err) {
+      console.log('Error getting all open positions: ', err);
+      throw err;
+    }
+  }
+
   public async getPricePercentage(): Promise<void> {
     try {
       const response = await this.client.getMarkPriceKline({
@@ -127,6 +142,8 @@ class BybitTrading {
       this.quantity = await this.calculatePositionSize();
       // this.price = await this.getAssetPrice();
       this.price = 0.45; //for testing
+      this.openPosition = await this.getAllOpenPosition();
+      console.log('openposition: ', this.openPosition);
 
       this.inPosition = await this.isInPosition();
       if (this.inPosition !== 0) return;

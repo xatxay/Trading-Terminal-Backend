@@ -1,6 +1,10 @@
 import WebSocket from 'ws';
 import { TreeNewsMessage } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
+import TreeNews from './treeNews.js';
+import { AccountInfo } from './routes.js';
+import { Express } from 'express';
+import { NewsWebsocket } from './routes.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
@@ -21,6 +25,26 @@ const extractString = (response: string): TickerAndSentiment[] => {
   });
 };
 
+const treeWebsocket = (): TreeNews => {
+  const treeNews = new TreeNews(process.env.TREENEWS);
+  treeNews.startPing();
+  return treeNews;
+};
+
+const sendAccountInfoRequest = (app: Express): void => {
+  const accountSummary = new AccountInfo(app);
+  accountSummary.getRequest();
+};
+
+const sendTreeNewsRequest = (app: Express): void => {
+  const treeNews = treeWebsocket();
+  treeNews.on('news', (newsMessage: unknown) => {
+    console.log('TREENEWS: ', newsMessage);
+    const treeNewsWebsocket = new NewsWebsocket(app, newsMessage);
+    treeNewsWebsocket.getNewsRequest();
+  });
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -29,4 +53,10 @@ const extractString = (response: string): TickerAndSentiment[] => {
 //   return nextProxy;
 // };
 
-export { extractWsData, extractString };
+export {
+  extractWsData,
+  extractString,
+  treeWebsocket,
+  sendAccountInfoRequest,
+  sendTreeNewsRequest,
+};

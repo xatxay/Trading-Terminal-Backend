@@ -83,4 +83,5 @@ export interface AccountSummary {
 
 export interface Wallet {
   getWalletBalance: () => Promise<AccountSummary>;
+  getAllOpenPosition: () => Promise<unknown>;
 }
