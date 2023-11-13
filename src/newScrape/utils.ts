@@ -14,6 +14,51 @@ function extractWsData(data: WebSocket.RawData): TreeNewsMessage {
   return messageObj;
 }
 
+function extractNewsWsData(data: WebSocket.RawData): TreeNewsMessage | null {
+  if (!data) return null;
+  const messageString = data.toString('utf-8');
+  const parseData = JSON.parse(messageString);
+
+  const newsData: TreeNewsMessage = {
+    title: '',
+    newsHeadline: '',
+    suggestions: [],
+    url: '',
+    link: '',
+    image: '',
+    video: '',
+    time: 0,
+    _id: '',
+  };
+
+  if (parseData.source) {
+    const blogTitle = parseData.title.match(/^([A-Z\s\\.\\-]+:)/) || [];
+    newsData.title = blogTitle ? blogTitle[0].trim() : '';
+    console.log('BLOGTITLE: ', blogTitle);
+    newsData.newsHeadline = newsData.title
+      ? parseData.title.substring(newsData.title.length).trim()
+      : parseData.title;
+    newsData.url = parseData.url;
+  } else {
+    const twitterTitle = parseData.title
+      ? parseData.title.match(/@([A-Za-z0-9_]+)/)
+      : '';
+    newsData.title = twitterTitle[1];
+    console.log('TWITTERTITLE: ', newsData.title);
+    newsData.newsHeadline = parseData.body;
+    newsData.link = parseData.link;
+  }
+  newsData.image = parseData.image ? parseData.image : '';
+  newsData.video = parseData.video ? parseData.video : '';
+  newsData.suggestions = parseData.suggestions
+    ? parseData.suggestions.map((coin: { coin: string }) => coin.coin)
+    : [];
+  newsData.time = parseData.time;
+  newsData._id = parseData._id;
+
+  return newsData;
+}
+
 const extractString = (response: string): TickerAndSentiment[] => {
   const responseSplit: string[] = response.split(';');
   return responseSplit.map((res) => {
@@ -32,10 +77,13 @@ const treeWebsocket = (): TreeNews => {
 };
 
 const sendAccountInfoRequest = (app: Express): void => {
-  const accountSummary = new AccountInfo(app, '/accountSummary');
-  const openPosition = new AccountInfo(app, '/positions');
-  accountSummary.getRequest();
-  openPosition.getRequest();
+  const sendAccountInfo = new AccountInfo(app);
+  sendAccountInfo.getRequest('/accountSummary');
+  sendAccountInfo.getRequest('/positions');
+  sendAccountInfo.postRequest('/start');
+  sendAccountInfo.postRequest('/stop');
+  sendAccountInfo.postRequest('/closeAll');
+  sendAccountInfo.postRequest('/close');
 };
 
 const sendTreeNewsRequest = (app: Express): void => {
@@ -47,6 +95,21 @@ const sendTreeNewsRequest = (app: Express): void => {
   });
 };
 
+const startButton = (): void => {
+  console.log('started button clicked');
+};
+
+const stopButton = (): void => {
+  console.log('stop button clicked');
+};
+
+const closeAllButton = (): void => {
+  console.log('close all button clicked');
+};
+
+const closeButton = (): void => {
+  console.log('close button clicked');
+};
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -61,4 +124,9 @@ export {
   treeWebsocket,
   sendAccountInfoRequest,
   sendTreeNewsRequest,
+  extractNewsWsData,
+  startButton,
+  closeButton,
+  stopButton,
+  closeAllButton,
 };

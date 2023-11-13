@@ -122,13 +122,16 @@ class BybitTrading {
     }
   }
 
-  public async getPricePercentage(): Promise<void> {
+  public async getPricePercentage(time: number): Promise<void> {
     try {
-      const response = await this.client.getMarkPriceKline({
+      // const time = Date.now();
+      const response = await this.client.getKline({
         category: 'linear',
         symbol: 'BTCUSDT',
         interval: '1',
+        start: time,
       });
+      console.log(Date.now());
       console.log('price data: ', response.result.list);
     } catch (err) {
       console.error('Error getting price data: ', err);

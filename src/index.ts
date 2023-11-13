@@ -6,6 +6,7 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
+// import BybitPrice from './newScrape/getPrice.js';
 // import startServer from './newScrape/server.js';
 
 const main = async (): Promise<void> => {
@@ -38,7 +39,6 @@ const main = async (): Promise<void> => {
 
       console.log('@@@@@: ', tickerPair);
       const bybitSubmit = new BybitTrading(tickerPair);
-      // await bybitSubmit.getPricePercentage();
       await bybitSubmit.submitOrder();
 
       console.log(
@@ -110,6 +110,9 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
+
+  // // const klinePrice = new BybitPrice();
+  // klinePrice.initializeWebsocket();
 
   // startServer();
   setInterval(

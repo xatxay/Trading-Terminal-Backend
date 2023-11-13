@@ -1,23 +1,27 @@
 import { Express, Request, Response } from 'express';
 import { AccountSummary, Wallet } from '../interface.js';
 import BybitTrading from './bybit.js';
+import {
+  closeAllButton,
+  closeButton,
+  startButton,
+  stopButton,
+} from './utils.js';
 
 class AccountInfo {
   private bybitAccount: Wallet;
   private app: Express;
-  private endpoint: string;
 
-  constructor(app: Express, endpoint: string) {
+  constructor(app: Express) {
     this.bybitAccount = new BybitTrading('');
     this.app = app;
-    this.endpoint = endpoint;
   }
 
-  public getRequest(): void {
-    this.app.get(this.endpoint, async (_req: Request, res: Response) => {
+  public getRequest(endpoint: string): void {
+    this.app.get(endpoint, async (_req: Request, res: Response) => {
       try {
         let data: AccountSummary | unknown;
-        if (this.endpoint === '/accountSummary') {
+        if (endpoint === '/accountSummary') {
           data = await this.bybitAccount.getWalletBalance();
         } else {
           data = await this.bybitAccount.getAllOpenPosition();
@@ -25,6 +29,28 @@ class AccountInfo {
         res.json(data);
       } catch (err) {
         res.status(500).send(err.message);
+      }
+    });
+  }
+
+  public postRequest(endpoint: string): void {
+    this.app.post(endpoint, (_req, res) => {
+      switch (endpoint) {
+        case '/start':
+          startButton();
+          res.send({ message: 'starting...' });
+          break;
+        case '/stop':
+          stopButton();
+          res.send({ message: 'stop...' });
+          break;
+        case '/closeAll':
+          closeAllButton();
+          res.send({ message: 'closing all...' });
+          break;
+        case '/close':
+          closeButton();
+          res.send({ message: 'closing...' });
       }
     });
   }

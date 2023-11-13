@@ -2,11 +2,16 @@ import https from 'https';
 
 export interface TreeNewsMessage {
   title: string;
-  body: string;
+  newsHeadline: string;
+  url?: string;
   link: string;
   time: number;
+  suggestions: string[];
+  image?: string;
+  video?: string;
   _id: string;
-  source: string;
+  source?: string;
+  body?: string;
 }
 
 export interface ExchangeParams {
