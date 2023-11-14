@@ -138,6 +138,24 @@ class BybitTrading {
     }
   }
 
+  public async closeOrder(side: string): Promise<void> {
+    const sideDirection = side === 'Buy' ? 'Sell' : 'Buy';
+    try {
+      const response = await this.client.submitOrder({
+        category: this.category,
+        symbol: this.symbol,
+        side: sideDirection,
+        orderType: 'Market',
+        qty: '0',
+        reduceOnly: true,
+        timeInForce: this.timeInForce,
+      });
+      console.log('Close order response: ', response);
+    } catch (err) {
+      console.error('Error closing order: ', err);
+    }
+  }
+
   public async submitOrder(): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     try {

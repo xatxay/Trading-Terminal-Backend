@@ -33,7 +33,7 @@ class TreeNews extends EventEmitter {
     const messageObj = extractNewsWsData(data);
     console.log('newswsdata: ', messageObj);
     await bybitSubmit.getPricePercentage(messageObj.time);
-    // this.emit('news', messageObj);
+    this.emit('news', messageObj);
     // const analyzer = new OpenAiAnalyze(apiKey, newsHeadline);
     // const response = await analyzer.callOpenAi();
     // console.log('Chatgpt response: ', response);

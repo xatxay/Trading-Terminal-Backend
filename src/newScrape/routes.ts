@@ -34,23 +34,30 @@ class AccountInfo {
   }
 
   public postRequest(endpoint: string): void {
-    this.app.post(endpoint, (_req, res) => {
+    this.app.post(endpoint, (req, res) => {
       switch (endpoint) {
-        case '/start':
+        case '/start': {
           startButton();
           res.send({ message: 'starting...' });
           break;
-        case '/stop':
+        }
+        case '/stop': {
           stopButton();
           res.send({ message: 'stop...' });
           break;
-        case '/closeAll':
+        }
+        case '/closeAll': {
           closeAllButton();
           res.send({ message: 'closing all...' });
           break;
-        case '/close':
-          closeButton();
+        }
+        case '/close': {
+          console.log('reqbody: ', req.body);
+          const { side, symbol } = req.body;
+          closeButton(symbol, side);
           res.send({ message: 'closing...' });
+          break;
+        }
       }
     });
   }

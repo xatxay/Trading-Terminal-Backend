@@ -12,6 +12,12 @@ export interface TreeNewsMessage {
   _id: string;
   source?: string;
   body?: string;
+  tickerPercentage?: TickerPercentages[];
+}
+
+interface TickerPercentages {
+  ticker: string;
+  percentage: number;
 }
 
 export interface ExchangeParams {
@@ -89,4 +95,26 @@ export interface AccountSummary {
 export interface Wallet {
   getWalletBalance: () => Promise<AccountSummary>;
   getAllOpenPosition: () => Promise<unknown>;
+}
+
+export interface KlineData {
+  start: number;
+  end: number;
+  interval: string;
+  open: string;
+  close: string;
+  high: string;
+  low: string;
+  volume: string;
+  turnover: string;
+  confirm: boolean;
+  timestamp: number;
+}
+
+export interface Kline {
+  topic: string;
+  data: KlineData[];
+  ts: number;
+  type: string;
+  wsKey: string;
 }

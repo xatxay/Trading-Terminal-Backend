@@ -8,6 +8,7 @@ const startServer = (): void => {
   const PORT = Number(process.env.PORT);
 
   app.use(cors());
+  app.use(express.json());
 
   const treeNews = treeWebsocket();
   treeNews.on('news', (newsMessage: unknown) => {

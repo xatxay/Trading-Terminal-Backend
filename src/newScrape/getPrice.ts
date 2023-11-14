@@ -1,8 +1,9 @@
 import WebSocket from 'ws';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
+import EventEmitter from 'events';
 
-abstract class FrontEndWebsocket {
-  protected ws: WebSocket.Server;
+class FrontEndWebsocket {
+  private ws: WebSocket.Server;
   constructor() {
     this.ws = new WebSocket.Server({ port: 8080 });
     this.startWebsocket();
@@ -35,7 +36,7 @@ abstract class FrontEndWebsocket {
   }
 }
 
-class BybitPrice extends FrontEndWebsocket {
+class BybitPrice extends EventEmitter {
   private wsClient: WebsocketClient;
   constructor() {
     super();
@@ -46,7 +47,7 @@ class BybitPrice extends FrontEndWebsocket {
     this.wsClient.on('update', (data) => {
       const rawData = JSON.stringify(data);
 
-      this.sendWebsocketData(rawData);
+      this.emit('percentage', rawData);
       console.log('Raw message received: ', rawData);
     });
 
@@ -75,4 +76,4 @@ class BybitPrice extends FrontEndWebsocket {
   }
 }
 
-export default BybitPrice;
+export { FrontEndWebsocket, BybitPrice };
