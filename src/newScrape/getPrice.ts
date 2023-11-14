@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
+import { WebsocketClient } from 'bybit-api';
 import EventEmitter from 'events';
 import { extractPriceData, subscribeKline, unSubscribeKline } from './utils.js';
 
@@ -46,6 +46,15 @@ class BybitPrice extends EventEmitter {
   }
 
   private initializeWebsocket(): void {
+    this.wsClient.on('update', (data) => {
+      if (data) {
+        const priceData = extractPriceData(data);
+
+        this.emit('percentage', priceData);
+        console.log('Price update: ', priceData);
+      }
+    });
+
     this.wsClient.on('open', () => {
       console.log('Websocket opened');
     });
@@ -62,19 +71,10 @@ class BybitPrice extends EventEmitter {
       console.log('Log response: ', JSON.stringify(data, null, 2));
     });
 
-    const activePublicLinearTopics = this.wsClient
-      .getWsStore()
-      .getTopics(WS_KEY_MAP.v5LinearPublic);
-    console.log('Active public linear topic: ', activePublicLinearTopics);
-  }
-
-  public priceUpdate(): void {
-    this.wsClient.on('update', (data) => {
-      const priceData = extractPriceData(data);
-
-      this.emit('percentage', priceData);
-      console.log('Raw message received: ', priceData);
-    });
+    // const activePublicLinearTopics = this.wsClient
+    //   .getWsStore()
+    //   .getTopics(WS_KEY_MAP.v5LinearPublic);
+    // console.log('Active public linear topic: ', activePublicLinearTopics);
   }
 
   public subscribeV5(ticker: string): void {

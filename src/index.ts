@@ -6,7 +6,7 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-import { BybitPrice } from './newScrape/getPrice.js';
+import sendDataFrontEnd from './newScrape/handleDataToFrontend.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
@@ -110,16 +110,13 @@ const main = async (): Promise<void> => {
     }
   };
 
-  const klinePrice = new BybitPrice();
-  klinePrice.subscribeV5('TIA');
-  klinePrice.priceUpdate();
-
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
     1000000,
   ); //or use node-cron
   routesHandling();
+  sendDataFrontEnd();
 };
 
 main();

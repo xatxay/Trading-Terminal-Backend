@@ -123,3 +123,8 @@ export interface PriceData {
   ticker: string;
   percentage: number;
 }
+
+export interface BothData {
+  news: TreeNewsMessage;
+  price: PriceData;
+}

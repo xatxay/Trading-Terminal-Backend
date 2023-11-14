@@ -1,7 +1,6 @@
 import WebSocket from 'ws';
 import { Kline, PriceData, TreeNewsMessage } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
-import TreeNews from './treeNews.js';
 import { AccountInfo } from './routes.js';
 import { Express } from 'express';
 import BybitTrading from './bybit.js';
@@ -29,9 +28,7 @@ function extractNewsWsData(data: WebSocket.RawData): TreeNewsMessage | null {
 
     if (parseData.source) {
       const blogTitle = parseData.title.match(/^([A-Z\s\\.\\-]+:)/) || [];
-      console.log('blogtitle: ', blogTitle);
       newsData.title = blogTitle[0] ? blogTitle[0].trim() : '';
-      console.log('BLOGTITLE: ', blogTitle);
       newsData.newsHeadline = newsData.title
         ? parseData.title.substring(newsData.title.length).trim()
         : parseData.title;
@@ -41,7 +38,6 @@ function extractNewsWsData(data: WebSocket.RawData): TreeNewsMessage | null {
         ? parseData.title.match(/@([A-Za-z0-9_]+)/)
         : '';
       newsData.title = twitterTitle[1];
-      console.log('TWITTERTITLE: ', newsData.title);
       newsData.newsHeadline = parseData.body;
       newsData.link = parseData.link;
     }
@@ -76,16 +72,16 @@ const extractString = (response: string): TickerAndSentiment[] => {
   }
 };
 
-const treeWebsocket = (): TreeNews => {
-  try {
-    const treeNews = new TreeNews(process.env.TREENEWS);
-    treeNews.startPing();
-    return treeNews;
-  } catch (err) {
-    console.log('Error initialize tree news ws: ', err);
-    throw err;
-  }
-};
+// const treeWebsocket = (): TreeNews => {
+//   try {
+//     const treeNews = new TreeNews(process.env.TREENEWS);
+//     treeNews.startPing();
+//     return treeNews;
+//   } catch (err) {
+//     console.log('Error initialize tree news ws: ', err);
+//     throw err;
+//   }
+// };
 
 const sendAccountInfoRequest = (app: Express): void => {
   try {
@@ -151,8 +147,6 @@ const calculatePercentage = (data: Kline): number => {
     const openPrice = Number(open);
     const closePrice = Number(close);
     const percentage = ((closePrice - openPrice) / openPrice) * 100;
-
-    console.log('open: ', open, 'close: ', close, 'percentage: ', percentage);
     return +percentage.toFixed(2);
   } catch (err) {
     console.log('Error calculating percentage: ', err);
@@ -190,7 +184,6 @@ const extractPriceData = (data: Kline): PriceData => {
 
 export {
   extractString,
-  treeWebsocket,
   sendAccountInfoRequest,
   extractNewsWsData,
   startButton,
