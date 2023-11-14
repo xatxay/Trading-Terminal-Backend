@@ -63,24 +63,24 @@ class AccountInfo {
   }
 }
 
-class NewsWebsocket {
-  private app: Express;
-  private data: unknown;
+// class NewsWebsocket {
+//   private app: Express;
+//   private data: unknown;
 
-  constructor(app: Express, data: unknown) {
-    this.data = data;
-    this.app = app;
-  }
+//   constructor(app: Express, data: unknown) {
+//     this.data = data;
+//     this.app = app;
+//   }
 
-  public getNewsRequest(): void {
-    this.app.get('/news', async (_req: Request, res: Response) => {
-      try {
-        res.send(this.data);
-      } catch (err) {
-        res.status(500).send(err.message);
-      }
-    });
-  }
-}
+//   public getNewsRequest(): void {
+//     this.app.get('/news', async (_req: Request, res: Response) => {
+//       try {
+//         res.send(this.data);
+//       } catch (err) {
+//         res.status(500).send(err.message);
+//       }
+//     });
+//   }
+// }
 
-export { AccountInfo, NewsWebsocket };
+export { AccountInfo };

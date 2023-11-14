@@ -118,3 +118,8 @@ export interface Kline {
   type: string;
   wsKey: string;
 }
+
+export interface PriceData {
+  ticker: string;
+  percentage: number;
+}

@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import EventEmitter from 'events';
+import { extractPriceData, subscribeKline, unSubscribeKline } from './utils.js';
 
 class FrontEndWebsocket {
   private ws: WebSocket.Server;
@@ -23,7 +24,7 @@ class FrontEndWebsocket {
     });
   }
 
-  protected sendWebsocketData(data: string): void {
+  public sendWebsocketData(data: string): void {
     this.ws.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         try {
@@ -41,16 +42,10 @@ class BybitPrice extends EventEmitter {
   constructor() {
     super();
     this.wsClient = new WebsocketClient({ market: 'v5' });
+    this.initializeWebsocket();
   }
 
-  public initializeWebsocket(): void {
-    this.wsClient.on('update', (data) => {
-      const rawData = JSON.stringify(data);
-
-      this.emit('percentage', rawData);
-      console.log('Raw message received: ', rawData);
-    });
-
+  private initializeWebsocket(): void {
     this.wsClient.on('open', () => {
       console.log('Websocket opened');
     });
@@ -67,12 +62,35 @@ class BybitPrice extends EventEmitter {
       console.log('Log response: ', JSON.stringify(data, null, 2));
     });
 
-    this.wsClient.subscribeV5('kline.1.BTCUSDT', 'linear');
-
     const activePublicLinearTopics = this.wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
     console.log('Active public linear topic: ', activePublicLinearTopics);
+  }
+
+  public priceUpdate(): void {
+    this.wsClient.on('update', (data) => {
+      const priceData = extractPriceData(data);
+
+      this.emit('percentage', priceData);
+      console.log('Raw message received: ', priceData);
+    });
+  }
+
+  public subscribeV5(ticker: string): void {
+    try {
+      subscribeKline(this.wsClient, ticker);
+    } catch (err) {
+      console.log('Error subscribing to kline: ', err);
+    }
+  }
+
+  public unsubscribeV5(ticker: string): void {
+    try {
+      unSubscribeKline(this.wsClient, ticker);
+    } catch (err) {
+      console.error('Error unsubscribing Kline: ', err);
+    }
   }
 }
 

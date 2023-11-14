@@ -6,8 +6,7 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-// import BybitPrice from './newScrape/getPrice.js';
-// import startServer from './newScrape/server.js';
+import { BybitPrice } from './newScrape/getPrice.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
@@ -111,10 +110,10 @@ const main = async (): Promise<void> => {
     }
   };
 
-  // // const klinePrice = new BybitPrice();
-  // klinePrice.initializeWebsocket();
+  const klinePrice = new BybitPrice();
+  klinePrice.subscribeV5('TIA');
+  klinePrice.priceUpdate();
 
-  // startServer();
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),

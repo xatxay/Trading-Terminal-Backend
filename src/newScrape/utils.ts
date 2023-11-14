@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { Kline, TreeNewsMessage } from '../interface.js';
+import { Kline, PriceData, TreeNewsMessage } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
 import TreeNews from './treeNews.js';
 import { AccountInfo } from './routes.js';
@@ -144,10 +144,10 @@ const unSubscribeKline = (wsClient: WebsocketClient, ticker: string): void => {
   }
 };
 
-const calculatePercentage = (data: string): number => {
+const calculatePercentage = (data: Kline): number => {
   try {
-    const dataParse: Kline = JSON.parse(data);
-    const { open, close } = dataParse.data[0];
+    // const dataParse: Kline = JSON.parse(data);
+    const { open, close } = data.data[0];
     const openPrice = Number(open);
     const closePrice = Number(close);
     const percentage = ((closePrice - openPrice) / openPrice) * 100;
@@ -156,6 +156,27 @@ const calculatePercentage = (data: string): number => {
     return +percentage.toFixed(2);
   } catch (err) {
     console.log('Error calculating percentage: ', err);
+    throw err;
+  }
+};
+
+const extractPriceData = (data: Kline): PriceData => {
+  try {
+    const priceData = {
+      ticker: '',
+      percentage: 0,
+    };
+    const tickerMatch = data.topic.match(/\.([A-Z]+)USDT/);
+    if (tickerMatch) {
+      priceData.ticker = tickerMatch[1];
+    } else {
+      console.log('No ticker found');
+    }
+
+    priceData.percentage = calculatePercentage(data);
+    return priceData;
+  } catch (err) {
+    console.log('Error extracting price data');
     throw err;
   }
 };
@@ -179,4 +200,5 @@ export {
   subscribeKline,
   unSubscribeKline,
   calculatePercentage,
+  extractPriceData,
 };
