@@ -119,13 +119,25 @@ const closeButton = (symbol: string, side: string): void => {
   }
 };
 
-const subscribeKline = (wsClient: WebsocketClient, ticker: string): void => {
+const subscribeKline = async (
+  wsClient: WebsocketClient,
+  ticker: string,
+): Promise<void> => {
   try {
-    wsClient.subscribeV5(`kline.1.${ticker}USDT`, 'linear');
-
+    const instrument = new BybitTrading('');
+    const response = await instrument.getInstrumentInfo(ticker);
+    const klineTicker = `kline.1.${ticker}USDT`;
     const activePublicLinearTopics = wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
+    if (
+      response !== 0 &&
+      activePublicLinearTopics &&
+      !activePublicLinearTopics.has(klineTicker)
+    ) {
+      wsClient.subscribeV5(`kline.1.${ticker}USDT`, 'linear');
+    }
+
     console.log('Active public linear topic: ', activePublicLinearTopics);
   } catch (err) {
     console.error('Error subscribing to linear topic: ', err);

@@ -156,6 +156,19 @@ class BybitTrading {
     }
   }
 
+  public async getInstrumentInfo(ticker: string): Promise<number> {
+    try {
+      const response = await this.client.getInstrumentsInfo({
+        category: this.category,
+        symbol: ticker,
+      });
+      return response.retCode;
+    } catch (err) {
+      console.log('Error checking instrument: ', err);
+      throw err;
+    }
+  }
+
   public async submitOrder(): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     try {

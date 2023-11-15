@@ -2,12 +2,10 @@
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
 import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
-// import { extractString } from './newScrape/utils.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
-// import { BybitPrice } from './newScrape/getPrice.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
