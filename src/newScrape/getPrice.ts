@@ -2,10 +2,12 @@ import WebSocket from 'ws';
 import { WebsocketClient } from 'bybit-api';
 import EventEmitter from 'events';
 import { extractPriceData, subscribeKline, unSubscribeKline } from './utils.js';
+import { PriceData } from '../interface.js';
 
-class FrontEndWebsocket {
+abstract class FrontEndWebsocket extends EventEmitter {
   private ws: WebSocket.Server;
   constructor() {
+    super();
     this.ws = new WebSocket.Server({ port: 8080 });
     this.startWebsocket();
   }
@@ -24,11 +26,12 @@ class FrontEndWebsocket {
     });
   }
 
-  public sendWebsocketData(data: string): void {
+  protected sendWebsocketData(data: PriceData): void {
     this.ws.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         try {
-          client.send(data);
+          const sendData = JSON.stringify(data);
+          client.send(sendData);
         } catch (err) {
           console.error('Send data error: ', err);
         }
@@ -37,7 +40,7 @@ class FrontEndWebsocket {
   }
 }
 
-class BybitPrice extends EventEmitter {
+class BybitPrice extends FrontEndWebsocket {
   private wsClient: WebsocketClient;
   constructor() {
     super();
@@ -50,6 +53,7 @@ class BybitPrice extends EventEmitter {
       if (data) {
         const priceData = extractPriceData(data);
 
+        this.sendWebsocketData(priceData);
         this.emit('percentage', priceData);
         console.log('Price update: ', priceData);
       }

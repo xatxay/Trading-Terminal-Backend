@@ -2,9 +2,11 @@ import dotenv from 'dotenv';
 import WebSocket from 'ws';
 import { extractNewsWsData } from './utils.js';
 import { EventEmitter } from 'events';
+import { BybitPrice } from './getPrice.js';
 // import OpenAiAnalyze from './chatgpt.js';
 
 dotenv.config();
+const bybitPercentage = new BybitPrice();
 
 class TreeNews extends EventEmitter {
   private ws: WebSocket;
@@ -29,6 +31,11 @@ class TreeNews extends EventEmitter {
   private async onMessage(data: WebSocket.RawData): Promise<void> {
     // const apiKey = process.env.OPENAI_API_KEY;
     const messageObj = extractNewsWsData(data);
+    if (messageObj.suggestions) {
+      for (const coin of messageObj.suggestions) {
+        bybitPercentage.subscribeV5(coin);
+      }
+    }
     console.log('newswsdata: ', messageObj);
     this.emit('news', messageObj);
     // const analyzer = new OpenAiAnalyze(apiKey, newsHeadline);

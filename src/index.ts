@@ -6,11 +6,14 @@ import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-import sendDataFrontEnd from './newScrape/handleDataToFrontend.js';
+import TreeNews from './newScrape/treeNews.js';
+// import { BybitPrice } from './newScrape/getPrice.js';
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
+  const treeNews = new TreeNews(process.env.TREENEWS);
+  treeNews.startPing();
 
   const routesHandling = (): void => {
     startServer();
@@ -116,7 +119,7 @@ const main = async (): Promise<void> => {
     1000000,
   ); //or use node-cron
   routesHandling();
-  sendDataFrontEnd();
+  // sendDataFrontEnd();
 };
 
 main();

@@ -126,5 +126,5 @@ export interface PriceData {
 
 export interface BothData {
   news: TreeNewsMessage;
-  price: PriceData;
+  price: PriceData[];
 }
