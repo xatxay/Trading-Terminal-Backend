@@ -39,7 +39,7 @@ const main = async (): Promise<void> => {
 
       console.log('@@@@@: ', tickerPair);
       const bybitSubmit = new BybitTrading(tickerPair);
-      await bybitSubmit.submitOrder();
+      await bybitSubmit.submitOrder('Buy');
 
       console.log(
         `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,

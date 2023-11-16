@@ -122,21 +122,21 @@ class BybitTrading {
     }
   }
 
-  public async getPricePercentage(time: number): Promise<void> {
-    try {
-      // const time = Date.now();
-      const response = await this.client.getKline({
-        category: 'linear',
-        symbol: 'BTCUSDT',
-        interval: '1',
-        start: time,
-      });
-      console.log(Date.now());
-      console.log('price data: ', response.result.list);
-    } catch (err) {
-      console.error('Error getting price data: ', err);
-    }
-  }
+  // public async getPricePercentage(time: number): Promise<void> {
+  //   try {
+  //     // const time = Date.now();
+  //     const response = await this.client.getKline({
+  //       category: 'linear',
+  //       symbol: 'BTCUSDT',
+  //       interval: '1',
+  //       start: time,
+  //     });
+  //     console.log(Date.now());
+  //     console.log('price data: ', response.result.list);
+  //   } catch (err) {
+  //     console.error('Error getting price data: ', err);
+  //   }
+  // }
 
   public async closeOrder(side: string): Promise<void> {
     const sideDirection = side === 'Buy' ? 'Sell' : 'Buy';
@@ -160,8 +160,9 @@ class BybitTrading {
     try {
       const response = await this.client.getInstrumentsInfo({
         category: this.category,
-        symbol: ticker,
+        symbol: `${ticker}USDT`,
       });
+      console.log('response.retcode: ', response, 'ticker: ', ticker);
       return response.retCode;
     } catch (err) {
       console.log('Error checking instrument: ', err);
@@ -169,8 +170,9 @@ class BybitTrading {
     }
   }
 
-  public async submitOrder(): Promise<void> {
+  public async submitOrder(side: string): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
+    const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
       await this.setLeverage();
       this.quantity = await this.calculatePositionSize();
@@ -185,7 +187,7 @@ class BybitTrading {
       const response = await this.client.submitOrder({
         category: this.category,
         symbol: this.symbol,
-        side: 'Buy',
+        side: direction,
         orderType: this.orderType,
         qty: this.quantity,
         price: this.price.toString(),

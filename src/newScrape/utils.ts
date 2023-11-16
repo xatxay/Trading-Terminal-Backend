@@ -92,6 +92,8 @@ const sendAccountInfoRequest = (app: Express): void => {
     sendAccountInfo.postRequest('/stop');
     sendAccountInfo.postRequest('/closeAll');
     sendAccountInfo.postRequest('/close');
+    sendAccountInfo.postRequest('/75');
+    sendAccountInfo.postRequest('/25');
   } catch (err) {
     console.error('Error sending requests: ', err);
   }
@@ -109,13 +111,22 @@ const closeAllButton = (): void => {
   console.log('close all button clicked');
 };
 
-const closeButton = (symbol: string, side: string): void => {
+const closeButton = async (symbol: string, side: string): Promise<void> => {
   try {
     const bybitOrder = new BybitTrading(symbol);
-    bybitOrder.closeOrder(side);
+    await bybitOrder.closeOrder(side);
     console.log('close button clicked');
   } catch (err) {
     console.error('Error closing button: ', err);
+  }
+};
+
+const seventyFive = async (symbol: string, side: string): Promise<void> => {
+  try {
+    const bybitSubmit = new BybitTrading(symbol);
+    await bybitSubmit.submitOrder(side);
+  } catch (err) {
+    console.log('Error submitting 75% orders: ', err);
   }
 };
 
@@ -130,11 +141,7 @@ const subscribeKline = async (
     const activePublicLinearTopics = wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
-    if (
-      response !== 0 &&
-      activePublicLinearTopics &&
-      !activePublicLinearTopics.has(klineTicker)
-    ) {
+    if (response === 0 && !activePublicLinearTopics.has(klineTicker)) {
       wsClient.subscribeV5(`kline.1.${ticker}USDT`, 'linear');
     }
 
@@ -206,4 +213,5 @@ export {
   unSubscribeKline,
   calculatePercentage,
   extractPriceData,
+  seventyFive,
 };

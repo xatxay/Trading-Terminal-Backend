@@ -58,6 +58,17 @@ class AccountInfo {
           res.send({ message: 'closing...' });
           break;
         }
+        case '/75': {
+          console.log('reqbody: ', req.body);
+          const { side, symbol } = req.body;
+          res.send({ message: `${side} ${symbol} 75%` });
+          break;
+        }
+        case '/25': {
+          console.log('req.body: ', req.body);
+          const { side, symbol } = req.body;
+          res.send({ message: `${side} ${symbol} 25%` });
+        }
       }
     });
   }
