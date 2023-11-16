@@ -55,7 +55,7 @@ class BybitPrice extends FrontEndWebsocket {
 
         this.sendWebsocketData(priceData);
         this.emit('percentage', priceData);
-        console.log('Price update: ', priceData);
+        // console.log('Price update: ', priceData);
       }
     });
 

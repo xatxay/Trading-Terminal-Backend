@@ -128,3 +128,7 @@ export interface BothData {
   news: TreeNewsMessage;
   price: PriceData[];
 }
+
+export interface OpenOrder {
+  avgPrice: string;
+}

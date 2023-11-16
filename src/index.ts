@@ -39,7 +39,7 @@ const main = async (): Promise<void> => {
 
       console.log('@@@@@: ', tickerPair);
       const bybitSubmit = new BybitTrading(tickerPair);
-      await bybitSubmit.submitOrder('Buy');
+      await bybitSubmit.submitOrder('Buy', 0.01);
 
       console.log(
         `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,
@@ -110,6 +110,9 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
+
+  const test = new BybitTrading('DYDXUSDT');
+  await test.isInPosition();
 
   setInterval(
     async () =>

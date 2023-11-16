@@ -92,8 +92,7 @@ const sendAccountInfoRequest = (app: Express): void => {
     sendAccountInfo.postRequest('/stop');
     sendAccountInfo.postRequest('/closeAll');
     sendAccountInfo.postRequest('/close');
-    sendAccountInfo.postRequest('/75');
-    sendAccountInfo.postRequest('/25');
+    sendAccountInfo.postRequest('/submitOrder');
   } catch (err) {
     console.error('Error sending requests: ', err);
   }
@@ -121,12 +120,18 @@ const closeButton = async (symbol: string, side: string): Promise<void> => {
   }
 };
 
-const seventyFive = async (symbol: string, side: string): Promise<void> => {
+const submitNewsOrder = async (
+  symbol: string,
+  side: string,
+  percentage: number,
+): Promise<void> => {
   try {
-    const bybitSubmit = new BybitTrading(symbol);
-    await bybitSubmit.submitOrder(side);
+    if (symbol === 'N/A') return;
+    console.log('75: ', symbol, side, percentage);
+    const bybitSubmit = new BybitTrading(`${symbol}USDT`);
+    await bybitSubmit.submitOrder(side, 0.01);
   } catch (err) {
-    console.log('Error submitting 75% orders: ', err);
+    console.log('Error submitting news orders: ', err);
   }
 };
 
@@ -213,5 +218,5 @@ export {
   unSubscribeKline,
   calculatePercentage,
   extractPriceData,
-  seventyFive,
+  submitNewsOrder,
 };

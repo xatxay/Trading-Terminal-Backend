@@ -10,14 +10,14 @@ import { AccountSummary } from '../interface.js';
 class BybitTrading {
   private client: RestClientV5;
   private category: CategoryV5 = 'linear';
-  private orderType: OrderTypeV5 = 'Limit'; //change later when use///////!!!!!!@@@@@@
+  private orderType: OrderTypeV5 = 'Market'; //change later when use///////!!!!!!@@@@@@
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
   private symbol: string;
   private leverage: string = '10';
-  private price: string | number;
+  // private price: string | number;
   private inPosition: number;
-  private openPosition: unknown;
+  // private openPosition: unknown;
 
   constructor(symbol: string) {
     this.client = new RestClientV5({
@@ -65,12 +65,14 @@ class BybitTrading {
     }
   }
 
-  private async calculatePositionSize(): Promise<string> {
+  private async calculatePositionSize(percentage: number): Promise<string> {
     try {
+      console.log('percentage: ', percentage, typeof percentage);
       const assetPrice = await this.getAssetPrice(),
         { totalAvailableBalance } = await this.getWalletBalance(),
         positionSizeNumber =
-          totalAvailableBalance * Number(this.leverage) * 0.25 * assetPrice,
+          (totalAvailableBalance * Number(this.leverage) * percentage) /
+          assetPrice,
         positionSize = positionSizeNumber.toFixed(0).toString();
       console.log('Position size: ', positionSize);
       return positionSize;
@@ -94,14 +96,15 @@ class BybitTrading {
     }
   }
 
-  private async isInPosition(): Promise<number> {
+  public async isInPosition(): Promise<number> {
     try {
       const response = await this.client.getPositionInfo({
         category: this.category,
-        symbol: 'BTCUSDT', //change this when use!!!@@@@
+        symbol: this.symbol, //change this when use!!!@@@@
       });
+      console.log('openorder: ', response.result.list);
       console.log('OPEN ORDER: ', response.result.list.length);
-      return response.result.list.length;
+      return +response.result.list[0].size;
     } catch (err) {
       console.error('Failed getting open order: ', err);
       throw err;
@@ -170,19 +173,20 @@ class BybitTrading {
     }
   }
 
-  public async submitOrder(side: string): Promise<void> {
+  public async submitOrder(side: string, percentage: number): Promise<void> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
       await this.setLeverage();
-      this.quantity = await this.calculatePositionSize();
+      this.quantity = await this.calculatePositionSize(percentage);
       // this.price = await this.getAssetPrice();
-      this.price = 0.45; //for testing
-      this.openPosition = await this.getAllOpenPosition();
-      console.log('openposition: ', this.openPosition);
+      // this.price = 0.45; //for testing
+      // this.openPosition = await this.getAllOpenPosition();
+      // console.log('openposition: ', this.openPosition);
 
       this.inPosition = await this.isInPosition();
-      if (this.inPosition !== 0) return;
+      console.log('this.inposition: ', this.inPosition);
+      if (this.inPosition && this.inPosition !== 0) return;
 
       const response = await this.client.submitOrder({
         category: this.category,
@@ -190,7 +194,7 @@ class BybitTrading {
         side: direction,
         orderType: this.orderType,
         qty: this.quantity,
-        price: this.price.toString(),
+        // price: this.price.toString(),
         timeInForce: this.timeInForce,
         orderLinkId: `${orderLinkId}`,
       });

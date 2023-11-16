@@ -6,6 +6,7 @@ import {
   closeButton,
   startButton,
   stopButton,
+  submitNewsOrder,
 } from './utils.js';
 
 class AccountInfo {
@@ -58,16 +59,12 @@ class AccountInfo {
           res.send({ message: 'closing...' });
           break;
         }
-        case '/75': {
+        case '/submitOrder': {
           console.log('reqbody: ', req.body);
-          const { side, symbol } = req.body;
-          res.send({ message: `${side} ${symbol} 75%` });
+          const { side, symbol, percentage } = req.body;
+          submitNewsOrder(symbol, side, +percentage);
+          res.send({ message: `${side} ${symbol} ${percentage}%` });
           break;
-        }
-        case '/25': {
-          console.log('req.body: ', req.body);
-          const { side, symbol } = req.body;
-          res.send({ message: `${side} ${symbol} 25%` });
         }
       }
     });
