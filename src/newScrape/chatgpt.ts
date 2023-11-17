@@ -20,7 +20,7 @@ class OpenAiAnalyze {
           { role: 'system', content: this.systemContent },
           { role: 'user', content: this.promptContent + this.newsHeadline },
         ],
-        model: 'gpt-4',
+        model: 'gpt-4-1106-preview',
       });
       return completion.choices[0].message.content;
     } catch (err) {

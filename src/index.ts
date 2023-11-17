@@ -1,14 +1,20 @@
-// import OpenAiAnalyze from './newScrape/chatgpt.js';
+import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
+import {
+  ExchangeHeader,
+  ExchangeParams,
+  Proxy,
+  TickerAndSentiment,
+} from './interface.js';
 import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
+import { extractString } from './newScrape/utils.js';
 
 const main = async (): Promise<void> => {
-  // const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
   const treeNews = new TreeNews(process.env.TREENEWS);
   treeNews.startPing();
@@ -38,8 +44,8 @@ const main = async (): Promise<void> => {
         tickerPair = `${ticker}USDT`;
 
       console.log('@@@@@: ', tickerPair);
-      const bybitSubmit = new BybitTrading(tickerPair);
-      await bybitSubmit.submitOrder('Buy', 0.01);
+      // const bybitSubmit = new BybitTrading(tickerPair);
+      // await bybitSubmit.submitOrder('Buy', 0.01);
 
       console.log(
         `Upbit Listing: ${upbitListing.list[0].title}\nTimestampt: ${timeStampt}\nLink: ${listingLink}\n------\n`,
@@ -66,20 +72,21 @@ const main = async (): Promise<void> => {
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      // const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-      //   response = await analyzer.callOpenAi();
+      const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
+        response = await analyzer.callOpenAi();
 
-      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
-      // for (const sentiment of companyAndSentiment) {
-      //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
-      //     console.log('Trade entered with ticker: ', sentiment.ticker);
-      //     const bybitSubmit = new BybitTrading(sentiment.ticker);
-      //     await bybitSubmit.submitOrder();
-      //   }
-      // }
+      for (const sentiment of companyAndSentiment) {
+        if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
+          const side = sentiment.sentiment >= 75 ? 'Buy' : 'Sell';
+          console.log('Trade entered with ticker: ', sentiment.ticker);
+          const bybitSubmit = new BybitTrading(sentiment.ticker);
+          await bybitSubmit.submitOrder(side, 0.01);
+        }
+      }
 
-      // console.log('sentiment score: ', companyAndSentiment);
+      console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -98,10 +105,10 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      // const analyzer = new OpenAiAnalyze(apiKey, title);
-      // const response = await analyzer.callOpenAi();
-      // const TickerAndSentiment = extractString(response);
-      // console.log('SEC analyze: ', TickerAndSentiment);
+      const analyzer = new OpenAiAnalyze(apiKey, title);
+      const response = await analyzer.callOpenAi();
+      const TickerAndSentiment = extractString(response);
+      console.log('SEC analyze: ', TickerAndSentiment);
 
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
@@ -111,16 +118,12 @@ const main = async (): Promise<void> => {
     }
   };
 
-  const test = new BybitTrading('DYDXUSDT');
-  await test.isInPosition();
-
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
     1000000,
   ); //or use node-cron
   routesHandling();
-  // sendDataFrontEnd();
 };
 
 main();
