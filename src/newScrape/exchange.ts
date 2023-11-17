@@ -27,14 +27,14 @@ abstract class Exchange<T> {
 
   public getListing = async (): Promise<T | null> => {
     try {
-      const currentProxies = this.proxies.getNextProxy();
-      console.log('CURRENT PROXIES: ', currentProxies);
+      // const currentProxies = this.proxies.getNextProxy();
+      // console.log('CURRENT PROXIES: ', currentProxies);
       // const httpsAgent = new HttpsProxyAgent(
       //   `http://${currentProxies.username}:${currentProxies.password}@${currentProxies.host}:${currentProxies.port}`,
       // );
       // this.config.httpsAgent = httpsAgent;
       const response = await axios.get(this.url, this.config);
-      this.proxies.getNextProxy();
+      // this.proxies.getNextProxy();
       return response.data.data;
     } catch (err) {
       console.error('Error getting listing: ', err.response);
