@@ -132,3 +132,9 @@ export interface BothData {
 export interface OpenOrder {
   avgPrice: string;
 }
+
+export interface UserLogin {
+  id: number;
+  username: string;
+  password: string;
+}

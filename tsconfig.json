@@ -20,7 +20,9 @@
     "strictNullChecks": false,
     "paths": {
       "cheerio": ["./node_modules/cheerio/lib/index.d.ts"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*", "__tests__/**/*"]
+  "include": ["src/**/*", "__tests__/**/*"],
+  "files": [".d.ts"]
 }

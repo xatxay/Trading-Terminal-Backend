@@ -8,6 +8,9 @@ import {
   stopButton,
   submitNewsOrder,
 } from './utils.js';
+import { selectUser } from '../login/createUser.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 class AccountInfo {
   private bybitAccount: Wallet;
@@ -35,7 +38,7 @@ class AccountInfo {
   }
 
   public postRequest(endpoint: string): void {
-    this.app.post(endpoint, (req, res) => {
+    this.app.post(endpoint, async (req, res): Promise<void> => {
       switch (endpoint) {
         case '/start': {
           startButton();
@@ -66,29 +69,37 @@ class AccountInfo {
           res.send({ message: `${side} ${symbol} ${percentage}%` });
           break;
         }
+        case '/login': {
+          const { username, password } = req.body;
+          console.log('Login: ', username, password);
+          try {
+            const user = await selectUser(username);
+            if (!user) {
+              res.status(400).send('Invalid username');
+              return;
+            }
+
+            const isMatch = await bcrypt.compare(password, user.password);
+
+            if (!isMatch) {
+              res.status(400).send('Invalid password');
+            }
+
+            const payload = { userId: user.id };
+            const token = jwt.sign(payload, process.env.JWT_SECRET, {
+              expiresIn: process.env.JWT_EXPIRE,
+            });
+
+            res.json({ token });
+          } catch (err) {
+            console.error('Error logging in: ', err);
+            res.status(500).send('Server error');
+          }
+          break;
+        }
       }
     });
   }
 }
-
-// class NewsWebsocket {
-//   private app: Express;
-//   private data: unknown;
-
-//   constructor(app: Express, data: unknown) {
-//     this.data = data;
-//     this.app = app;
-//   }
-
-//   public getNewsRequest(): void {
-//     this.app.get('/news', async (_req: Request, res: Response) => {
-//       try {
-//         res.send(this.data);
-//       } catch (err) {
-//         res.status(500).send(err.message);
-//       }
-//     });
-//   }
-// }
 
 export { AccountInfo };

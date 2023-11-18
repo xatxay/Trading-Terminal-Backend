@@ -8,7 +8,10 @@ import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
 // import { extractString } from './newScrape/utils.js';
 import createDb from './login/createDatabase.js';
-import createUser from './login/createUser.js';
+import { createUser } from './login/createUser.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const main = async (): Promise<void> => {
   // const apiKey = process.env.OPENAI_API_KEY;
@@ -18,9 +21,12 @@ const main = async (): Promise<void> => {
 
   const handleUser = async (): Promise<void> => {
     const account = {
-      username: process.env.USERNAME,
+      username: process.env.USERNAMELOGIN,
       password: process.env.PASSWORD,
     };
+    console.log('ASDASDA:', process.env.USERNAME);
+    console.log('password: ', account.password);
+    console.log('accoutn: ', account.username);
     await createDb('loginTable.sql');
     await createUser(account.username, account.password);
   };
