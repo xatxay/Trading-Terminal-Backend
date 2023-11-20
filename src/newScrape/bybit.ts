@@ -5,7 +5,7 @@ import {
   CategoryV5,
   OrderTimeInForceV5,
 } from 'bybit-api';
-import { AccountSummary } from '../interface.js';
+import { AccountSummary, Setleverage } from '../interface.js';
 
 class BybitTrading {
   private client: RestClientV5;
@@ -82,7 +82,7 @@ class BybitTrading {
     }
   }
 
-  private async setLeverage(): Promise<void> {
+  private async setLeverage(): Promise<Setleverage> {
     try {
       const response = await this.client.setLeverage({
         category: 'linear',
@@ -91,8 +91,10 @@ class BybitTrading {
         sellLeverage: this.leverage,
       });
       console.log('Setleverage response: ', response);
+      return response;
     } catch (err) {
       console.error('Failed setting leverage: ', err);
+      throw err;
     }
   }
 
@@ -177,16 +179,18 @@ class BybitTrading {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
-      await this.setLeverage();
+      const setLeverageResponse = await this.setLeverage();
+      if (setLeverageResponse.retMsg !== 'OK') return;
+
+      this.inPosition = await this.isInPosition();
+      console.log('this.inposition: ', this.inPosition);
+      if (this.inPosition && this.inPosition !== 0) return;
+
       this.quantity = await this.calculatePositionSize(percentage);
       // this.price = await this.getAssetPrice();
       // this.price = 0.45; //for testing
       // this.openPosition = await this.getAllOpenPosition();
       // console.log('openposition: ', this.openPosition);
-
-      this.inPosition = await this.isInPosition();
-      console.log('this.inposition: ', this.inPosition);
-      if (this.inPosition && this.inPosition !== 0) return;
 
       const response = await this.client.submitOrder({
         category: this.category,

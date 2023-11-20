@@ -21,6 +21,7 @@ class OpenAiAnalyze {
           { role: 'user', content: this.promptContent + this.newsHeadline },
         ],
         model: 'gpt-4-1106-preview',
+        temperature: 0.2,
       });
       return completion.choices[0].message.content;
     } catch (err) {

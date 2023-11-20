@@ -7,7 +7,6 @@ const createUser = async (
   password: string,
 ): Promise<void> => {
   try {
-    console.log('username: ', username);
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       `

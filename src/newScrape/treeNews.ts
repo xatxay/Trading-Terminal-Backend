@@ -1,20 +1,20 @@
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
 import { extractNewsWsData } from './utils.js';
-import { EventEmitter } from 'events';
 import { BybitPrice } from './getPrice.js';
 // import OpenAiAnalyze from './chatgpt.js';
 
 dotenv.config();
 const bybitPercentage = new BybitPrice();
 
-class TreeNews extends EventEmitter {
+class TreeNews {
   private ws: WebSocket;
+  private tickerSubscribe: string[];
 
   constructor(url: string) {
-    super();
     this.ws = new WebSocket(url);
     this.setupEvents();
+    this.tickerSubscribe = [];
   }
 
   private setupEvents(): void {
@@ -34,10 +34,20 @@ class TreeNews extends EventEmitter {
     if (messageObj.suggestions) {
       for (const coin of messageObj.suggestions) {
         bybitPercentage.subscribeV5(coin);
+        const existingIndex = this.tickerSubscribe.indexOf(coin);
+        if (existingIndex !== -1) {
+          this.tickerSubscribe.splice(existingIndex, 1);
+        }
+        this.tickerSubscribe.unshift(coin);
+        if (this.tickerSubscribe.length > 15) {
+          const removedCoin = this.tickerSubscribe.pop();
+          removedCoin && bybitPercentage.unsubscribeV5(coin);
+        }
       }
     }
+    console.log('subscribeset: ', this.tickerSubscribe);
     console.log('newswsdata: ', messageObj);
-    this.emit('news', messageObj);
+    // this.emit('news', messageObj);
     // const analyzer = new OpenAiAnalyze(apiKey, messageObj.newsHeadline);
     // const response = await analyzer.callOpenAi();
     // console.log('Chatgpt response: ', response);

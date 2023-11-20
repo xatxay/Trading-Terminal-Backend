@@ -138,3 +138,11 @@ export interface UserLogin {
   username: string;
   password: string;
 }
+
+export interface Setleverage {
+  retCode: number;
+  retMsg: string;
+  result: Record<string, never>;
+  retExtInfo?: Record<string, never>;
+  time: number;
+}
