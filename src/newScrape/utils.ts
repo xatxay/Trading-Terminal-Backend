@@ -5,6 +5,7 @@ import { AccountInfo } from './routes.js';
 import { Express } from 'express';
 import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
+// import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
@@ -93,6 +94,8 @@ const sendAccountInfoRequest = (app: Express): void => {
     sendAccountInfo.postRequest('/closeAll');
     sendAccountInfo.postRequest('/close');
     sendAccountInfo.postRequest('/submitOrder');
+    sendAccountInfo.postRequest('/login');
+    sendAccountInfo.postRequest('/logout');
   } catch (err) {
     console.error('Error sending requests: ', err);
   }
@@ -198,6 +201,7 @@ const extractPriceData = (data: Kline): PriceData => {
     throw err;
   }
 };
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);

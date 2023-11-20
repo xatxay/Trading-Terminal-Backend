@@ -24,9 +24,6 @@ const main = async (): Promise<void> => {
       username: process.env.USERNAMELOGIN,
       password: process.env.PASSWORD,
     };
-    console.log('ASDASDA:', process.env.USERNAME);
-    console.log('password: ', account.password);
-    console.log('accoutn: ', account.username);
     await createDb('loginTable.sql');
     await createUser(account.username, account.password);
   };
