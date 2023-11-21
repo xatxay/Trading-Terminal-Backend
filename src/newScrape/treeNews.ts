@@ -5,6 +5,7 @@ import {
   extractString,
   getTimeStamp,
   handleSubscribeList,
+  submitNewsOrder,
 } from './utils.js';
 import { BybitPrice } from './getPrice.js';
 import {
@@ -12,10 +13,12 @@ import {
   insertNewsHeadline,
 } from '../tradeData/tradeAnalyzeUtils.js';
 import OpenAiAnalyze from './chatgpt.js';
-// import BybitTrading from './bybit.js';
+import EventEmitter from 'events';
+import { PriceData } from '../interface.js';
 
 dotenv.config();
 const bybitPercentage = new BybitPrice();
+const priceUpdate = new EventEmitter();
 
 class TreeNews {
   private ws: WebSocket;
@@ -48,6 +51,9 @@ class TreeNews {
 
     const wsTimeStamp = getTimeStamp(messageObj.time);
 
+    const analyzer = new OpenAiAnalyze(apiKey, messageObj.newsHeadline);
+    const response = await analyzer.callOpenAi(messageObj.suggestions);
+
     await insertNewsHeadline(
       messageObj._id,
       messageObj.title,
@@ -62,27 +68,30 @@ class TreeNews {
     console.log('subscribeset: ', this.tickerSubscribe);
     console.log('newswsdata: ', messageObj);
 
-    const analyzer = new OpenAiAnalyze(apiKey, messageObj.newsHeadline);
-    const response = await analyzer.callOpenAi(messageObj.suggestions);
-
     if (response) {
       const result = extractString(response);
       console.log('gpt result: ', result);
       const gptTimeStamp = getTimeStamp();
       for (const tickerAndSentiment of result) {
-        // const side =
-        //   tickerAndSentiment.sentiment >= 70
-        //     ? 'Buy'
-        //     : tickerAndSentiment.sentiment <= 70
-        //     ? 'Sell'
-        //     : '';
-        // if (
-        //   tickerAndSentiment.sentiment >= 70 ||
-        //   tickerAndSentiment.sentiment <= 70
-        // ) {
-        //   const bybitTrading = new BybitTrading(tickerAndSentiment.ticker);
-        //   bybitTrading.submitOrder(side, 0.001);
-        // }
+        const side =
+          tickerAndSentiment.sentiment >= 70
+            ? 'Buy'
+            : tickerAndSentiment.sentiment <= 70
+            ? 'Sell'
+            : '';
+        priceUpdate.on('percentage', (data: PriceData) => {
+          if (
+            (tickerAndSentiment.ticker === data.ticker &&
+              tickerAndSentiment.sentiment >= 70 &&
+              data.percentage < 2) ||
+            (tickerAndSentiment.ticker === data.ticker &&
+              tickerAndSentiment.sentiment <= 70 &&
+              data.percentage < 2)
+          ) {
+            console.log('submitting...');
+            submitNewsOrder(tickerAndSentiment.ticker, side, 0.001);
+          }
+        });
         await insertChatGptSentiment(
           messageObj._id,
           gptTimeStamp,

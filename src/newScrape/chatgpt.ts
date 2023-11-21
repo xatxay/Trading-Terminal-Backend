@@ -28,7 +28,6 @@ class OpenAiAnalyze {
           },
         ],
         model: 'gpt-4-1106-preview',
-        temperature: 0.2,
       });
       ticker
         ? console.log(

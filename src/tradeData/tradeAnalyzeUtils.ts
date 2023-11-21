@@ -15,6 +15,7 @@ const insertNewsHeadline = async (
       `INSERT INTO news_headline (_id, title, newsHeadline, url, link, time, suggestions, body) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [id, title, newsHeadline, url, link, time, suggestions, body],
     );
+    console.log('Inserting news headline');
   } catch (err) {
     console.error('Error inserting into news_headline: ', err);
   }

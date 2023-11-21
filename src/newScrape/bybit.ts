@@ -205,7 +205,7 @@ class BybitTrading {
       console.log('this.inposition: ', this.inPosition);
       if (this.inPosition && this.inPosition !== 0) return;
 
-      this.quantity = await this.calculatePositionSize(percentage);
+      this.quantity = await this.calculatePositionSize(percentage); //might want to remove this for speed
       this.price = await this.getAssetPrice();
       if (side === 'Buy') {
         this.tp = (this.price * 0.1 + this.price).toString();

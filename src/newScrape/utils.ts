@@ -243,7 +243,7 @@ const getTimeStamp = (newsTime?: number): string => {
     second: now.getSeconds().toString().padStart(2, '0'),
     milliseconds: now.getMilliseconds().toString().padStart(3, '0'),
   };
-  const timeStamp = `${time.date}/${time.month}/${time.year}, ${time.hour}/${time.minute}/${time.second}/${time.milliseconds}`;
+  const timeStamp = `${time.date}/${time.month}/${time.year}, ${time.hour}:${time.minute}:${time.second}:${time.milliseconds}`;
   console.log('timeStamp: ', timeStamp);
   return timeStamp;
 };
@@ -273,7 +273,6 @@ export {
   getTimeStamp,
 };
 
-// tradedata db
 // submit order close move stop
-// percentage before submitting
+// tradedata db
 // speed

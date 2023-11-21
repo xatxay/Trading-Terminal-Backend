@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS news_headline (
     id SERIAL PRIMARY KEY,
     _id VARCHAR(255) UNIQUE,
-    title VARCHAR(255),
-    newsHeadline VARCHAR(255),
-    url VARCHAR(255),
-    link VARCHAR(255),
-    time VARCHAR(255),
+    title TEXT,
+    newsHeadline TEXT,
+    url TEXT,
+    link TEXT,
+    time TEXT,
     suggestions VARCHAR[],
-    body VARCHAR(255)
+    body TEXT
 );
 
 CREATE TABLE IF NOT EXISTS chatgpt_sentiment (
