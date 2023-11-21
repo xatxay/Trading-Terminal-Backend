@@ -5,7 +5,7 @@ import {
   CategoryV5,
   OrderTimeInForceV5,
 } from 'bybit-api';
-import { AccountSummary, Setleverage } from '../interface.js';
+import { AccountSummary, ResponseBybit } from '../interface.js';
 
 class BybitTrading {
   private client: RestClientV5;
@@ -15,8 +15,10 @@ class BybitTrading {
   private timeInForce: OrderTimeInForceV5 = 'GTC';
   private symbol: string;
   private leverage: string = '10';
-  // private price: string | number;
+  private price: string | number;
   private inPosition: number;
+  private tp: string;
+  private sl: string;
   // private openPosition: unknown;
 
   constructor(symbol: string) {
@@ -25,7 +27,7 @@ class BybitTrading {
       secret: process.env.BYBITSECRET,
       enable_time_sync: true,
     });
-    this.symbol = symbol;
+    this.symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
   }
 
   private async getAssetPrice(): Promise<number> {
@@ -34,7 +36,6 @@ class BybitTrading {
         category: this.category,
         symbol: this.symbol,
       });
-      console.log('this.client: ');
       const price = Number(response.result.list[0].lastPrice);
       console.log(`${this.symbol} last price: ${price}`);
       return price;
@@ -82,7 +83,7 @@ class BybitTrading {
     }
   }
 
-  private async setLeverage(): Promise<Setleverage> {
+  private async setLeverage(): Promise<void> {
     try {
       const response = await this.client.setLeverage({
         category: 'linear',
@@ -91,7 +92,7 @@ class BybitTrading {
         sellLeverage: this.leverage,
       });
       console.log('Setleverage response: ', response);
-      return response;
+      // return response;
     } catch (err) {
       console.error('Failed setting leverage: ', err);
       throw err;
@@ -105,7 +106,7 @@ class BybitTrading {
         symbol: this.symbol, //change this when use!!!@@@@
       });
       console.log('openorder: ', response.result.list);
-      console.log('OPEN ORDER: ', response.result.list.length);
+      // console.log('OPEN ORDER: ', response.result.list.length);
       return +response.result.list[0].size;
     } catch (err) {
       console.error('Failed getting open order: ', err);
@@ -143,7 +144,21 @@ class BybitTrading {
   //   }
   // }
 
-  public async closeOrder(side: string): Promise<void> {
+  public async getTradeResult(time: number): Promise<void> {
+    try {
+      const response = await this.client.getClosedPnL({
+        category: this.category,
+        symbol: this.symbol,
+        startTime: time,
+        limit: 1,
+      });
+      console.log('gettraderesult: ', response.result.list);
+    } catch (err) {
+      console.log('Error getting trade result: ', err);
+    }
+  }
+
+  public async closeOrder(side: string): Promise<ResponseBybit> {
     const sideDirection = side === 'Buy' ? 'Sell' : 'Buy';
     try {
       const response = await this.client.submitOrder({
@@ -156,8 +171,11 @@ class BybitTrading {
         timeInForce: this.timeInForce,
       });
       console.log('Close order response: ', response);
+      this.getTradeResult(response.time);
+      return response;
     } catch (err) {
       console.error('Error closing order: ', err);
+      throw err;
     }
   }
 
@@ -165,7 +183,7 @@ class BybitTrading {
     try {
       const response = await this.client.getInstrumentsInfo({
         category: this.category,
-        symbol: `${ticker}USDT`,
+        symbol: ticker,
       });
       console.log('response.retcode: ', response, 'ticker: ', ticker);
       return response.retCode;
@@ -179,15 +197,23 @@ class BybitTrading {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
-      const setLeverageResponse = await this.setLeverage();
-      if (setLeverageResponse.retMsg !== 'OK') return;
+      const checkInstrument = await this.getInstrumentInfo(this.symbol);
+      if (checkInstrument !== 0) return;
+      await this.setLeverage();
 
       this.inPosition = await this.isInPosition();
       console.log('this.inposition: ', this.inPosition);
       if (this.inPosition && this.inPosition !== 0) return;
 
       this.quantity = await this.calculatePositionSize(percentage);
-      // this.price = await this.getAssetPrice();
+      this.price = await this.getAssetPrice();
+      if (side === 'Buy') {
+        this.tp = (this.price * 0.1 + this.price).toString();
+        this.sl = (this.price - this.price * 0.02).toString();
+      } else {
+        this.tp = (this.price - this.price * 0.1).toString();
+        this.sl = (this.price + this.price * 0.02).toString();
+      }
       // this.price = 0.45; //for testing
       // this.openPosition = await this.getAllOpenPosition();
       // console.log('openposition: ', this.openPosition);
@@ -201,6 +227,8 @@ class BybitTrading {
         // price: this.price.toString(),
         timeInForce: this.timeInForce,
         orderLinkId: `${orderLinkId}`,
+        takeProfit: `${this.tp}`,
+        stopLoss: `${this.sl}`,
       });
 
       console.log('Submit order response: ', response);

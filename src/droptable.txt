@@ -1,0 +1,3 @@
+DROP TABLE chatgpt_sentiment;
+DROP TABLE trade_data;
+DROP TABLE news_headline;

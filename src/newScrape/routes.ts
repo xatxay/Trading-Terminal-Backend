@@ -93,8 +93,10 @@ class AccountInfo {
             case '/close': {
               console.log('reqbody: ', req.body);
               const { side, symbol } = req.body;
-              closeButton(symbol, side);
-              res.send({ message: 'closing...' });
+              const response = await closeButton(symbol, side);
+              response.retCode === 0
+                ? res.send({ message: 'closing...' })
+                : res.send({ message: `Error closing: ${response.retMsg}` });
               break;
             }
             case '/submitOrder': {

@@ -11,9 +11,9 @@ const createDb = async (fileName: string): Promise<void> => {
     const path = `${__dirname}/${fileName}`;
     const setupDb = await readFile(path, { encoding: 'utf-8' });
     await pool.query(setupDb);
-    console.log('Created login database successfully');
+    console.log(`Created ${fileName} database successfully`);
   } catch (err) {
-    console.error('Error creating login database: ', err);
+    console.error(`Error creating ${fileName} database: `, err);
   }
 };
 

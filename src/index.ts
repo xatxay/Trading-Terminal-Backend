@@ -7,7 +7,7 @@ import {
   Proxy,
   TickerAndSentiment,
 } from './interface.js';
-import BybitTrading from './newScrape/bybit.js';
+// import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
@@ -30,6 +30,7 @@ const main = async (): Promise<void> => {
       password: process.env.PASSWORD,
     };
     await createDb('loginTable.sql');
+    await createDb('tradeAnalyze.sql');
     await createUser(account.username, account.password);
   };
 
@@ -91,13 +92,13 @@ const main = async (): Promise<void> => {
 
       const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
-      for (const sentiment of companyAndSentiment) {
-        if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
-          const side = sentiment.sentiment >= 75 ? 'Buy' : 'Sell';
-          const bybitSubmit = new BybitTrading(sentiment.ticker);
-          await bybitSubmit.submitOrder(side, 0.01);
-        }
-      }
+      // for (const sentiment of companyAndSentiment) {
+      //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
+      //     const side = sentiment.sentiment >= 75 ? 'Buy' : 'Sell';
+      //     const bybitSubmit = new BybitTrading(sentiment.ticker);
+      //     await bybitSubmit.submitOrder(side, 0.001);
+      //   }
+      // }
 
       console.log('sentiment score: ', companyAndSentiment);
       console.log(
@@ -130,6 +131,15 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
+
+  // const now = Date.now();
+  // const twoDay = new Date(now - 2 * 24 * 60 * 60 * 1000);
+  // const time = twoDay.getTime();
+  // const test1 = new BybitTrading('OP');
+  // const result = await test1.getInstrumentInfo('OP');
+  // console.log('result: ', result);
+  // // test1.getTradeResult(time);
+  // await test1.submitOrder('Buy', 0.001);
 
   await handleUser();
   setInterval(

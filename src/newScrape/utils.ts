@@ -1,10 +1,16 @@
 import WebSocket from 'ws';
-import { Kline, PriceData, TreeNewsMessage } from '../interface.js';
+import {
+  Kline,
+  PriceData,
+  ResponseBybit,
+  TreeNewsMessage,
+} from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
 import { AccountInfo } from './routes.js';
 import { Express } from 'express';
 import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
+import { BybitPrice } from './getPrice.js';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -73,6 +79,25 @@ const extractString = (response: string): TickerAndSentiment[] => {
   }
 };
 
+const handleSubscribeList = (
+  bybitPercentage: BybitPrice,
+  messageObj: TreeNewsMessage,
+  tickerSubscribe: string[],
+): void => {
+  for (const coin of messageObj.suggestions) {
+    bybitPercentage.subscribeV5(coin);
+    const existingIndex = tickerSubscribe.indexOf(coin);
+    if (existingIndex !== -1) {
+      tickerSubscribe.splice(existingIndex, 1);
+    }
+    tickerSubscribe.unshift(coin);
+    if (tickerSubscribe.length > 15) {
+      const removedCoin = tickerSubscribe.pop();
+      removedCoin && bybitPercentage.unsubscribeV5(coin);
+    }
+  }
+};
+
 // const treeWebsocket = (): TreeNews => {
 //   try {
 //     const treeNews = new TreeNews(process.env.TREENEWS);
@@ -113,13 +138,18 @@ const closeAllButton = (): void => {
   console.log('close all button clicked');
 };
 
-const closeButton = async (symbol: string, side: string): Promise<void> => {
+const closeButton = async (
+  symbol: string,
+  side: string,
+): Promise<ResponseBybit> => {
   try {
     const bybitOrder = new BybitTrading(symbol);
-    await bybitOrder.closeOrder(side);
+    const response = await bybitOrder.closeOrder(side);
     console.log('close button clicked');
+    return response;
   } catch (err) {
     console.error('Error closing button: ', err);
+    throw err;
   }
 };
 
@@ -131,8 +161,8 @@ const submitNewsOrder = async (
   try {
     if (symbol === 'N/A') return;
     console.log('75: ', symbol, side, percentage);
-    const bybitSubmit = new BybitTrading(`${symbol}USDT`);
-    await bybitSubmit.submitOrder(side, 0.01);
+    const bybitSubmit = new BybitTrading(symbol);
+    await bybitSubmit.submitOrder(side, 0.001);
   } catch (err) {
     console.log('Error submitting news orders: ', err);
   }
@@ -144,13 +174,13 @@ const subscribeKline = async (
 ): Promise<void> => {
   try {
     const instrument = new BybitTrading('');
-    const response = await instrument.getInstrumentInfo(ticker);
-    const klineTicker = `kline.1.${ticker}USDT`;
+    const response = await instrument.getInstrumentInfo(`${ticker}USDT`);
+    const klineTicker = `kline.3.${ticker}USDT`;
     const activePublicLinearTopics = wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
     if (response === 0 && !activePublicLinearTopics.has(klineTicker)) {
-      wsClient.subscribeV5(`kline.1.${ticker}USDT`, 'linear');
+      wsClient.subscribeV5(`kline.3.${ticker}USDT`, 'linear');
     }
 
     console.log('Active public linear topic: ', activePublicLinearTopics);
@@ -161,7 +191,7 @@ const subscribeKline = async (
 
 const unSubscribeKline = (wsClient: WebsocketClient, ticker: string): void => {
   try {
-    wsClient.unsubscribeV5(`kline.1.${ticker}`, 'linear');
+    wsClient.unsubscribeV5(`kline.3.${ticker}`, 'linear');
   } catch (err) {
     console.error('Error unsubscribing to linear topic: ', err);
   }
@@ -202,6 +232,22 @@ const extractPriceData = (data: Kline): PriceData => {
   }
 };
 
+const getTimeStamp = (newsTime?: number): string => {
+  const now = newsTime ? new Date(newsTime) : new Date();
+  const time = {
+    date: now.getDate().toString().padStart(2, '0'),
+    month: now.getMonth().toString().padStart(2, '0'),
+    year: now.getFullYear().toString().slice(-2),
+    hour: now.getHours().toString().padStart(2, '0'),
+    minute: now.getMinutes().toString().padStart(2, '0'),
+    second: now.getSeconds().toString().padStart(2, '0'),
+    milliseconds: now.getMilliseconds().toString().padStart(3, '0'),
+  };
+  const timeStamp = `${time.date}/${time.month}/${time.year}, ${time.hour}/${time.minute}/${time.second}/${time.milliseconds}`;
+  console.log('timeStamp: ', timeStamp);
+  return timeStamp;
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -223,4 +269,11 @@ export {
   calculatePercentage,
   extractPriceData,
   submitNewsOrder,
+  handleSubscribeList,
+  getTimeStamp,
 };
+
+// tradedata db
+// submit order close move stop
+// percentage before submitting
+// speed

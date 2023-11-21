@@ -139,10 +139,23 @@ export interface UserLogin {
   password: string;
 }
 
-export interface Setleverage {
+export interface ResponseBybit {
   retCode: number;
   retMsg: string;
-  result: Record<string, never>;
+  result: Record<string, never> | Result;
   retExtInfo?: Record<string, never>;
   time: number;
+}
+
+// export interface SubmitOrder {
+//   retCode: number;
+//   retMsg: string;
+//   result: Result;
+//   retExtInfo?: Record<string, never>;
+//   time: number;
+// }
+
+interface Result {
+  orderId: string;
+  orderLinkId: string;
 }
