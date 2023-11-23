@@ -55,7 +55,7 @@ class BybitPrice extends FrontEndWebsocket {
       market: 'v5',
     });
     this.initializeWebsocket();
-    // this.subscribePositions();
+    this.subscribePositions();
   }
 
   private initializeWebsocket(): void {
@@ -70,7 +70,6 @@ class BybitPrice extends FrontEndWebsocket {
           positionResult.positionEnterTime,
         );
         console.log('position update: ', data);
-        //check 0, get timestamp and call close position
       } else if (data.wsKey === 'v5LinearPublic') {
         const priceData = extractPriceData(data);
 
@@ -102,7 +101,7 @@ class BybitPrice extends FrontEndWebsocket {
     // console.log('Active public linear topic: ', activePublicLinearTopics);
   }
 
-  public subscribePositions(): void {
+  private subscribePositions(): void {
     try {
       this.wsClient.subscribeV5('position', 'linear');
     } catch (err) {

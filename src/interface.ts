@@ -159,6 +159,7 @@ export interface V5WsData {
 export interface PriceData {
   ticker: string;
   percentage: number;
+  price: string;
 }
 
 export interface BothData {
@@ -179,7 +180,7 @@ export interface UserLogin {
 export interface ResponseBybit {
   retCode: number;
   retMsg: string;
-  result: Record<string, never> | Result;
+  result: Record<string, never> | Result | TradeResult;
   retExtInfo?: Record<string, never>;
   time: number;
 }
@@ -215,4 +216,9 @@ export interface SubmitOrder {
 interface Result {
   orderId: string;
   orderLinkId: string;
+}
+
+export interface SpecificCoin {
+  entryPrice: string;
+  size: string;
 }

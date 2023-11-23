@@ -8,7 +8,12 @@ import {
   CategoryCursorListV5,
   ClosedPnLV5,
 } from 'bybit-api';
-import { AccountSummary, ResponseBybit, SubmitOrder } from '../interface.js';
+import {
+  AccountSummary,
+  ResponseBybit,
+  SpecificCoin,
+  SubmitOrder,
+} from '../interface.js';
 
 class BybitTrading {
   private client: RestClientV5;
@@ -69,15 +74,17 @@ class BybitTrading {
     }
   }
 
-  private async calculatePositionSize(percentage: number): Promise<string> {
+  public async calculatePositionSize(percentage: number): Promise<string> {
     try {
-      console.log('percentage: ', percentage, typeof percentage);
-      const assetPrice = await this.getAssetPrice(),
-        { totalAvailableBalance } = await this.getWalletBalance(),
-        positionSizeNumber =
-          (totalAvailableBalance * Number(this.leverage) * percentage) /
-          assetPrice,
-        positionSize = positionSizeNumber.toFixed(0).toString();
+      const assetPrice = await this.getAssetPrice();
+      const { totalAvailableBalance } = await this.getWalletBalance();
+      const positionSizeNumber =
+        (totalAvailableBalance * Number(this.leverage) * percentage) /
+        assetPrice;
+      const positionSize = positionSizeNumber.toFixed(0).toString();
+      console.log('percentage: ', percentage);
+      console.log('price: ', assetPrice);
+      console.log('accountBalnce: ', totalAvailableBalance);
       console.log('Position size: ', positionSize);
       return positionSize;
     } catch (err) {
@@ -123,10 +130,28 @@ class BybitTrading {
         category: this.category,
         settleCoin: 'USDT',
       });
-      console.log('ALL OPENORDER: ', response.result.list);
+      // console.log('ALL OPENORDER: ', response.result.list);
       return response.result.list;
     } catch (err) {
       console.log('Error getting all open positions: ', err);
+      throw err;
+    }
+  }
+
+  public async getSpecificPosition(): Promise<SpecificCoin> {
+    try {
+      const response = await this.client.getPositionInfo({
+        category: this.category,
+        symbol: this.symbol,
+      });
+      console.log('specific coin: ', response.result.list);
+      const data = {
+        entryPrice: response.result.list[0].avgPrice,
+        size: response.result.list[0].size,
+      };
+      return data;
+    } catch (err) {
+      console.error('Failed getting specific coin info: ', err);
       throw err;
     }
   }
@@ -168,7 +193,7 @@ class BybitTrading {
     }
   }
 
-  public async closeOrder(side: string): Promise<ResponseBybit> {
+  public async closeOrder(side: string, size?: string): Promise<ResponseBybit> {
     const sideDirection = side === 'Buy' ? 'Sell' : 'Buy';
     try {
       const response = await this.client.submitOrder({
@@ -176,7 +201,7 @@ class BybitTrading {
         symbol: this.symbol,
         side: sideDirection,
         orderType: 'Market',
-        qty: '0',
+        qty: size ? (+size / 2).toString() : '0',
         reduceOnly: true,
         timeInForce: this.timeInForce,
       });
@@ -206,19 +231,21 @@ class BybitTrading {
   public async submitOrder(
     side: string,
     percentage: number,
+    chatgpt: boolean,
   ): Promise<SubmitOrder> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
       const checkInstrument = await this.getInstrumentInfo(this.symbol);
-      if (checkInstrument === 0) {
+      if (checkInstrument !== 0) return null;
+
+      await this.setLeverage();
+      this.quantity = await this.calculatePositionSize(percentage);
+
+      if (chatgpt) {
         this.inPosition = await this.isInPosition();
         console.log('this.inposition: ', this.inPosition);
-        if (this.inPosition && this.inPosition !== 0) return null; //ASKKKKKKKKKKKKKKKKKK
-
-        await this.setLeverage();
-
-        this.quantity = await this.calculatePositionSize(percentage); //might want to remove this for speed
+        if (this.inPosition && this.inPosition !== 0) return null;
         this.price = await this.getAssetPrice();
         if (side === 'Buy') {
           this.tp = (this.price * 0.005 + this.price).toString();
@@ -227,24 +254,23 @@ class BybitTrading {
           this.tp = (this.price - this.price * 0.005).toString();
           this.sl = (this.price + this.price * 0.02).toString();
         }
-
-        const response = await this.client.submitOrder({
-          category: this.category,
-          symbol: this.symbol,
-          side: direction,
-          orderType: this.orderType,
-          qty: this.quantity,
-          // price: this.price.toString(),
-          timeInForce: this.timeInForce,
-          orderLinkId: `${orderLinkId}`,
-          takeProfit: `${this.tp}`,
-          stopLoss: `${this.sl}`,
-        });
-
-        console.log('Submit order response: ', response);
-        return response;
       }
-      return null;
+
+      const response = await this.client.submitOrder({
+        category: this.category,
+        symbol: this.symbol,
+        side: direction,
+        orderType: this.orderType,
+        qty: this.quantity,
+        // price: this.price.toString(),
+        timeInForce: this.timeInForce,
+        orderLinkId: `${orderLinkId}`,
+        takeProfit: `${this.tp}`,
+        stopLoss: `${this.sl}`,
+      });
+
+      console.log('Submit order response: ', response);
+      return response;
     } catch (err) {
       console.error('Failed submitting order: ', err);
       throw err;

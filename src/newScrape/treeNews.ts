@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 import {
   extractNewsWsData,
   extractString,
+  formatNewsText,
   getTimeStamp,
   handleSubscribeList,
   submitNewsOrder,
@@ -14,12 +15,11 @@ import {
   insertTradeData,
 } from '../tradeData/tradeAnalyzeUtils.js';
 import OpenAiAnalyze from './chatgpt.js';
-import EventEmitter from 'events';
 import { PriceData } from '../interface.js';
+import BybitTrading from './bybit.js';
 
 dotenv.config();
 const bybitPercentage = new BybitPrice();
-const priceUpdate = new EventEmitter();
 
 class TreeNews {
   private ws: WebSocket;
@@ -55,10 +55,12 @@ class TreeNews {
     const analyzer = new OpenAiAnalyze(apiKey, messageObj.newsHeadline);
     const response = await analyzer.callOpenAi(messageObj.suggestions);
 
+    const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
+
     await insertNewsHeadline(
       messageObj._id,
       messageObj.title,
-      messageObj.newsHeadline,
+      formattedNewsHeadline,
       messageObj.url,
       messageObj.link,
       wsTimeStamp,
@@ -80,7 +82,7 @@ class TreeNews {
             : tickerAndSentiment.sentiment <= 70
             ? 'Sell'
             : '';
-        priceUpdate.on('percentage', async (data: PriceData) => {
+        bybitPercentage.once('percentage', async (data: PriceData) => {
           if (
             (tickerAndSentiment.ticker === data.ticker &&
               tickerAndSentiment.sentiment >= 70 &&
@@ -89,12 +91,18 @@ class TreeNews {
               tickerAndSentiment.sentiment <= 70 &&
               data.percentage < 2)
           ) {
-            console.log('submitting...');
+            console.log('submitting...________________');
             const response = await submitNewsOrder(
               tickerAndSentiment.ticker,
               side,
               0.001,
+              true,
             );
+            const getEntryPrice = new BybitTrading(tickerAndSentiment.ticker);
+            const coinData = await getEntryPrice.getSpecificPosition();
+            if (+data.price >= +coinData.entryPrice * 5) {
+              await getEntryPrice.closeOrder(side, coinData.size);
+            }
             await insertTradeData(
               messageObj._id,
               response.time,

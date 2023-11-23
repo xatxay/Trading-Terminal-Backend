@@ -100,6 +100,28 @@ const handleSubscribeList = (
   }
 };
 
+const formatNewsText = (newsText: string): string => {
+  try {
+    const maxLength = 255;
+    const removeEmoji =
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}]|[^\w\s]|[\r\n]+/gu;
+    let formattedText = newsText.replace(removeEmoji, '').trim();
+
+    if (formattedText.length > maxLength) {
+      formattedText = formattedText.substring(0, maxLength);
+      const lastSpaceIndex = formattedText.lastIndexOf(' ');
+      if (lastSpaceIndex > 0) {
+        formattedText = formattedText.substring(0, lastSpaceIndex);
+      }
+      formattedText += '...';
+    }
+    return formattedText;
+  } catch (err) {
+    console.log('Failed formatting news text: ', err);
+    throw err;
+  }
+};
+
 // const treeWebsocket = (): TreeNews => {
 //   try {
 //     const treeNews = new TreeNews(process.env.TREENEWS);
@@ -197,12 +219,13 @@ const submitNewsOrder = async (
   symbol: string,
   side: string,
   percentage: number,
+  chatgpt?: boolean,
 ): Promise<SubmitOrder> => {
   try {
     if (symbol === 'N/A') return null;
     console.log('75: ', symbol, side, percentage);
     const bybitSubmit = new BybitTrading(symbol);
-    const response = await bybitSubmit.submitOrder(side, 0.001);
+    const response = await bybitSubmit.submitOrder(side, 0.001, chatgpt);
     return response;
   } catch (err) {
     console.log('Error submitting news orders: ', err);
@@ -269,6 +292,7 @@ const extractPriceData = (data: V5WsData): PriceData => {
     const priceData = {
       ticker: '',
       percentage: 0,
+      price: '',
     };
     const tickerMatch = data.topic.match(/\.([A-Z]+)USDT/);
     if (tickerMatch) {
@@ -278,6 +302,7 @@ const extractPriceData = (data: V5WsData): PriceData => {
     }
 
     priceData.percentage = calculatePercentage(data);
+    priceData.price = data.data[0].close; //check front end
     return priceData;
   } catch (err) {
     console.log('Error extracting price data');
@@ -350,5 +375,6 @@ export {
   getTimeStamp,
   chatgptClosePositionData,
   checkPartials,
+  formatNewsText,
   // isPositionData,
 };
