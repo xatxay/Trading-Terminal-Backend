@@ -25,6 +25,11 @@ const main = async (): Promise<void> => {
   const treeNews = new TreeNews(process.env.TREENEWS);
   treeNews.startPing();
 
+  // TODO: remove create database scripts
+  // TODO: refactor database scripts into node scripts to run on ec2 machines
+  // TODO: create '/create-user' endpoint that takes in email and password and creates a new user in the 'login' table for the db
+  // TODO: set up bybit to handle multiple user credentials
+  // TODO: create bybit api integration for other users
   const handleUser = async (): Promise<void> => {
     const account = {
       username: process.env.USERNAMELOGIN,
