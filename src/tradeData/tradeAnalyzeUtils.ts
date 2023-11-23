@@ -43,17 +43,42 @@ const insertTradeData = async (
   ticker: string,
   side: string,
   entry: string | number,
+  partial: string,
   pnl: string | number,
   outcome: string,
 ): Promise<void> => {
   try {
     await pool.query(
-      `INSERT INTO trade_data (news_id, time_stamp, ticker, side, entry, pnl,  outcome) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [id, timeStamp, ticker, side, entry, pnl, outcome],
+      `INSERT INTO trade_data (news_id, time_stamp, ticker, side, entry, partial, pnl,  outcome) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, timeStamp, ticker, side, entry, partial, pnl, outcome],
     );
   } catch (err) {
     console.error('Error inserting into trade_data: ', err);
   }
 };
 
-export { insertChatGptSentiment, insertNewsHeadline, insertTradeData };
+const updateTradeOutcome = async (
+  entry: string,
+  partial: string,
+  pnl: string,
+  outcome: string,
+  timeStamp: string,
+  ticker: string,
+  side: string,
+): Promise<void> => {
+  try {
+    await pool.query(
+      `UPDATE trade_data SET entry = $1, partial = $2, pnl = $3, outcome = $4 WHERE time_stamp = $5 AND ticker = $6 AND side = $7`,
+      [entry, partial, pnl, outcome, timeStamp, ticker, side],
+    );
+  } catch (err) {
+    console.error('Error updating trade_data: ', err);
+  }
+};
+
+export {
+  insertChatGptSentiment,
+  insertNewsHeadline,
+  insertTradeData,
+  updateTradeOutcome,
+};

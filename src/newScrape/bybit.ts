@@ -4,8 +4,11 @@ import {
   OrderTypeV5,
   CategoryV5,
   OrderTimeInForceV5,
+  APIResponseV3WithTime,
+  CategoryCursorListV5,
+  ClosedPnLV5,
 } from 'bybit-api';
-import { AccountSummary, ResponseBybit } from '../interface.js';
+import { AccountSummary, ResponseBybit, SubmitOrder } from '../interface.js';
 
 class BybitTrading {
   private client: RestClientV5;
@@ -144,8 +147,13 @@ class BybitTrading {
   //   }
   // }
 
-  public async getTradeResult(time: number): Promise<void> {
+  public async getTradeResult(
+    time: number,
+  ): Promise<
+    APIResponseV3WithTime<CategoryCursorListV5<ClosedPnLV5[], CategoryV5>>
+  > {
     try {
+      console.log('thissss: ', this.symbol, '|', time);
       const response = await this.client.getClosedPnL({
         category: this.category,
         symbol: this.symbol,
@@ -153,8 +161,10 @@ class BybitTrading {
         limit: 1,
       });
       console.log('gettraderesult: ', response.result.list);
+      return response;
     } catch (err) {
       console.log('Error getting trade result: ', err);
+      throw err;
     }
   }
 
@@ -185,7 +195,7 @@ class BybitTrading {
         category: this.category,
         symbol: ticker,
       });
-      console.log('response.retcode: ', response, 'ticker: ', ticker);
+      console.log('getinstrumentinfolog: ', response, 'ticker: ', ticker);
       return response.retCode;
     } catch (err) {
       console.log('Error checking instrument: ', err);
@@ -193,47 +203,51 @@ class BybitTrading {
     }
   }
 
-  public async submitOrder(side: string, percentage: number): Promise<void> {
+  public async submitOrder(
+    side: string,
+    percentage: number,
+  ): Promise<SubmitOrder> {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
       const checkInstrument = await this.getInstrumentInfo(this.symbol);
-      if (checkInstrument !== 0) return;
-      await this.setLeverage();
+      if (checkInstrument === 0) {
+        this.inPosition = await this.isInPosition();
+        console.log('this.inposition: ', this.inPosition);
+        if (this.inPosition && this.inPosition !== 0) return null; //ASKKKKKKKKKKKKKKKKKK
 
-      this.inPosition = await this.isInPosition();
-      console.log('this.inposition: ', this.inPosition);
-      if (this.inPosition && this.inPosition !== 0) return;
+        await this.setLeverage();
 
-      this.quantity = await this.calculatePositionSize(percentage); //might want to remove this for speed
-      this.price = await this.getAssetPrice();
-      if (side === 'Buy') {
-        this.tp = (this.price * 0.1 + this.price).toString();
-        this.sl = (this.price - this.price * 0.02).toString();
-      } else {
-        this.tp = (this.price - this.price * 0.1).toString();
-        this.sl = (this.price + this.price * 0.02).toString();
+        this.quantity = await this.calculatePositionSize(percentage); //might want to remove this for speed
+        this.price = await this.getAssetPrice();
+        if (side === 'Buy') {
+          this.tp = (this.price * 0.005 + this.price).toString();
+          this.sl = (this.price - this.price * 0.02).toString();
+        } else {
+          this.tp = (this.price - this.price * 0.005).toString();
+          this.sl = (this.price + this.price * 0.02).toString();
+        }
+
+        const response = await this.client.submitOrder({
+          category: this.category,
+          symbol: this.symbol,
+          side: direction,
+          orderType: this.orderType,
+          qty: this.quantity,
+          // price: this.price.toString(),
+          timeInForce: this.timeInForce,
+          orderLinkId: `${orderLinkId}`,
+          takeProfit: `${this.tp}`,
+          stopLoss: `${this.sl}`,
+        });
+
+        console.log('Submit order response: ', response);
+        return response;
       }
-      // this.price = 0.45; //for testing
-      // this.openPosition = await this.getAllOpenPosition();
-      // console.log('openposition: ', this.openPosition);
-
-      const response = await this.client.submitOrder({
-        category: this.category,
-        symbol: this.symbol,
-        side: direction,
-        orderType: this.orderType,
-        qty: this.quantity,
-        // price: this.price.toString(),
-        timeInForce: this.timeInForce,
-        orderLinkId: `${orderLinkId}`,
-        takeProfit: `${this.tp}`,
-        stopLoss: `${this.sl}`,
-      });
-
-      console.log('Submit order response: ', response);
+      return null;
     } catch (err) {
       console.error('Failed submitting order: ', err);
+      throw err;
     }
   }
 }

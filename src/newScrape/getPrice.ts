@@ -1,7 +1,12 @@
 import WebSocket from 'ws';
 import { WebsocketClient } from 'bybit-api';
-import { extractPriceData, subscribeKline, unSubscribeKline } from './utils.js';
-import { PriceData } from '../interface.js';
+import {
+  chatgptClosePositionData,
+  extractPriceData,
+  subscribeKline,
+  unSubscribeKline,
+} from './utils.js';
+import { PriceData, V5WsData } from '../interface.js';
 import EventEmitter from 'events';
 
 abstract class FrontEndWebsocket extends EventEmitter {
@@ -44,13 +49,29 @@ class BybitPrice extends FrontEndWebsocket {
   private wsClient: WebsocketClient;
   constructor() {
     super();
-    this.wsClient = new WebsocketClient({ market: 'v5' });
+    this.wsClient = new WebsocketClient({
+      key: process.env.BYBITAPIKEY,
+      secret: process.env.BYBITSECRET,
+      market: 'v5',
+    });
     this.initializeWebsocket();
+    // this.subscribePositions();
   }
 
   private initializeWebsocket(): void {
-    this.wsClient.on('update', (data) => {
-      if (data) {
+    this.wsClient.on('update', async (data: V5WsData) => {
+      if (data.topic === 'position' && !data.data[0].side) {
+        const positionResult = {
+          positionEnterTime: Date.now() - 1 * 60 * 1000,
+          symbol: data.data[0].symbol,
+        };
+        await chatgptClosePositionData(
+          positionResult.symbol,
+          positionResult.positionEnterTime,
+        );
+        console.log('position update: ', data);
+        //check 0, get timestamp and call close position
+      } else if (data.wsKey === 'v5LinearPublic') {
         const priceData = extractPriceData(data);
 
         this.sendWebsocketData(priceData);
@@ -79,6 +100,14 @@ class BybitPrice extends FrontEndWebsocket {
     //   .getWsStore()
     //   .getTopics(WS_KEY_MAP.v5LinearPublic);
     // console.log('Active public linear topic: ', activePublicLinearTopics);
+  }
+
+  public subscribePositions(): void {
+    try {
+      this.wsClient.subscribeV5('position', 'linear');
+    } catch (err) {
+      console.error('Error subscribing to positions: ', err);
+    }
   }
 
   public subscribeV5(ticker: string): void {

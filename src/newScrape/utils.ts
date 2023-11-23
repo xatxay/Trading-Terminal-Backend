@@ -1,9 +1,10 @@
 import WebSocket from 'ws';
 import {
-  Kline,
+  V5WsData,
   PriceData,
   ResponseBybit,
   TreeNewsMessage,
+  SubmitOrder,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
 import { AccountInfo } from './routes.js';
@@ -11,6 +12,7 @@ import { Express } from 'express';
 import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
+import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -153,18 +155,58 @@ const closeButton = async (
   }
 };
 
+const chatgptClosePositionData = async (
+  symbol: string,
+  time: number,
+): Promise<void> => {
+  try {
+    console.log('casdasd: ', symbol, '|', time);
+    const bybitOrder = new BybitTrading(symbol);
+    const response = await bybitOrder.getTradeResult(time);
+    const tradeResult = {
+      symbol: response.result.list[0].symbol,
+      entryPrice: response.result.list[0].avgEntryPrice,
+      exitPrice: response.result.list[0].avgExitPrice,
+      pnl: response.result.list[0].closedPnl,
+      timeStamp: response.result.list[0].createdTime,
+      side: response.result.list[0].side,
+    };
+    const isPartial = checkPartials(
+      tradeResult.side,
+      tradeResult.entryPrice,
+      tradeResult.exitPrice,
+    );
+    const partials = isPartial === true ? 'yes' : 'no';
+    const outcome = Number(tradeResult.pnl) < 0 ? 'win' : 'loss';
+    const side = tradeResult.side === 'Buy' ? 'Sell' : 'Buy';
+    updateTradeOutcome(
+      tradeResult.entryPrice,
+      partials,
+      tradeResult.pnl,
+      outcome,
+      tradeResult.timeStamp,
+      tradeResult.symbol,
+      side,
+    );
+  } catch (err) {
+    console.log('Failed getting chatgpt close position result: ', err);
+  }
+};
+
 const submitNewsOrder = async (
   symbol: string,
   side: string,
   percentage: number,
-): Promise<void> => {
+): Promise<SubmitOrder> => {
   try {
-    if (symbol === 'N/A') return;
+    if (symbol === 'N/A') return null;
     console.log('75: ', symbol, side, percentage);
     const bybitSubmit = new BybitTrading(symbol);
-    await bybitSubmit.submitOrder(side, 0.001);
+    const response = await bybitSubmit.submitOrder(side, 0.001);
+    return response;
   } catch (err) {
     console.log('Error submitting news orders: ', err);
+    throw err;
   }
 };
 
@@ -197,7 +239,18 @@ const unSubscribeKline = (wsClient: WebsocketClient, ticker: string): void => {
   }
 };
 
-const calculatePercentage = (data: Kline): number => {
+// const isPositionData = (data: Data): data is PositionData => {
+//   return (data as PositionData).side !== undefined;
+// };
+
+// const isKlineData = (data: Data): data is KlineData => {
+//   return (
+//     (data as KlineData).open !== undefined &&
+//     (data as KlineData).close !== undefined
+//   );
+// };
+
+const calculatePercentage = (data: V5WsData): number => {
   try {
     // const dataParse: Kline = JSON.parse(data);
     const { open, close } = data.data[0];
@@ -211,7 +264,7 @@ const calculatePercentage = (data: Kline): number => {
   }
 };
 
-const extractPriceData = (data: Kline): PriceData => {
+const extractPriceData = (data: V5WsData): PriceData => {
   try {
     const priceData = {
       ticker: '',
@@ -248,6 +301,30 @@ const getTimeStamp = (newsTime?: number): string => {
   return timeStamp;
 };
 
+const checkPartials = (
+  side: string,
+  entryPrice: string,
+  exitPrice: string,
+): boolean => {
+  try {
+    let isPartial = false;
+    const numEntryPrice = Number(entryPrice);
+    const numExitPrice = Number(exitPrice);
+    if (side === 'Sell' && numExitPrice < numEntryPrice * 0.1 + numEntryPrice) {
+      isPartial = true;
+      return isPartial;
+    } else if (
+      side === 'Buy' &&
+      numExitPrice > numEntryPrice - numEntryPrice * 0.1
+    ) {
+      return isPartial;
+    }
+    return isPartial;
+  } catch (err) {
+    throw new Error('Error checking partials: ', err);
+  }
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -271,8 +348,7 @@ export {
   submitNewsOrder,
   handleSubscribeList,
   getTimeStamp,
+  chatgptClosePositionData,
+  checkPartials,
+  // isPositionData,
 };
-
-// submit order close move stop
-// tradedata db
-// speed

@@ -11,6 +11,7 @@ import { BybitPrice } from './getPrice.js';
 import {
   insertChatGptSentiment,
   insertNewsHeadline,
+  insertTradeData,
 } from '../tradeData/tradeAnalyzeUtils.js';
 import OpenAiAnalyze from './chatgpt.js';
 import EventEmitter from 'events';
@@ -79,7 +80,7 @@ class TreeNews {
             : tickerAndSentiment.sentiment <= 70
             ? 'Sell'
             : '';
-        priceUpdate.on('percentage', (data: PriceData) => {
+        priceUpdate.on('percentage', async (data: PriceData) => {
           if (
             (tickerAndSentiment.ticker === data.ticker &&
               tickerAndSentiment.sentiment >= 70 &&
@@ -89,7 +90,21 @@ class TreeNews {
               data.percentage < 2)
           ) {
             console.log('submitting...');
-            submitNewsOrder(tickerAndSentiment.ticker, side, 0.001);
+            const response = await submitNewsOrder(
+              tickerAndSentiment.ticker,
+              side,
+              0.001,
+            );
+            await insertTradeData(
+              messageObj._id,
+              response.time,
+              tickerAndSentiment.ticker,
+              side,
+              '-',
+              '-',
+              '-',
+              '-',
+            );
           }
         });
         await insertChatGptSentiment(

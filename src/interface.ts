@@ -111,9 +111,46 @@ export interface KlineData {
   timestamp: number;
 }
 
-export interface Kline {
+export interface PositionData extends KlineData {
+  positionIdx: number;
+  tradeMode: number;
+  riskId: number;
+  riskLimitValue: string;
+  symbol: string;
+  side: string;
+  size: string;
+  entryPrice: string;
+  leverage: string;
+  positionValue: string;
+  positionBalance: string;
+  markPrice: string;
+  positionIM: string;
+  positionMM: string;
+  takeProfit: string;
+  stopLoss: string;
+  trailingStop: string;
+  unrealisedPnl: string;
+  cumRealisedPnl: string;
+  createdTime: string;
+  updatedTime: string;
+  tpslMode: string;
+  liqPrice: string;
+  bustPrice: string;
+  category: string;
+  positionStatus: string;
+  adlRankIndicator: number;
+  autoAddMargin: number;
+  leverageSysUpdatedTime: string;
+  mmrSysUpdatedTime: string;
+  seq: number;
+  isReduceOnly: false;
+}
+
+export type Data = PositionData | KlineData;
+
+export interface V5WsData {
   topic: string;
-  data: KlineData[];
+  data: PositionData[];
   ts: number;
   type: string;
   wsKey: string;
@@ -147,13 +184,33 @@ export interface ResponseBybit {
   time: number;
 }
 
-// export interface SubmitOrder {
-//   retCode: number;
-//   retMsg: string;
-//   result: Result;
-//   retExtInfo?: Record<string, never>;
-//   time: number;
-// }
+export interface TradeResult {
+  symbol?: string;
+  orderType?: string;
+  leverage?: string;
+  updatedTime?: string;
+  side?: string;
+  orderId?: string;
+  closedPnl?: string;
+  avgEntryPrice?: string;
+  qty?: string;
+  cumEntryValue?: string;
+  createdTime?: string;
+  orderPrice?: string;
+  closedSize?: string;
+  avgExitPrice?: string;
+  execType?: string;
+  fillCount?: string;
+  cumExitValue?: string;
+}
+
+export interface SubmitOrder {
+  retCode: number;
+  retMsg: string;
+  result: Result;
+  retExtInfo?: Record<string, never>;
+  time: number;
+}
 
 interface Result {
   orderId: string;

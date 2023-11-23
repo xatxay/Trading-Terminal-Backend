@@ -10,19 +10,20 @@ import {
 // import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-import TreeNews from './newScrape/treeNews.js';
+// import TreeNews from './newScrape/treeNews.js';
 import { extractString } from './newScrape/utils.js';
 import createDb from './login/createDatabase.js';
 import { createUser } from './login/createUser.js';
 import dotenv from 'dotenv';
+import { BybitPrice } from './newScrape/getPrice.js';
 
 dotenv.config();
 
 const main = async (): Promise<void> => {
   const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
-  const treeNews = new TreeNews(process.env.TREENEWS);
-  treeNews.startPing();
+  // const treeNews = new TreeNews(process.env.TREENEWS);
+  // treeNews.startPing();
 
   const handleUser = async (): Promise<void> => {
     const account = {
@@ -133,13 +134,15 @@ const main = async (): Promise<void> => {
   };
 
   // const now = Date.now();
-  // const twoDay = new Date(now - 2 * 24 * 60 * 60 * 1000);
+  // const twoDay = new Date(now - 5 * 60 * 1000);
   // const time = twoDay.getTime();
-  // const test1 = new BybitTrading('OP');
+  // const test1 = new BybitTrading('TIA');
   // const result = await test1.getInstrumentInfo('OP');
   // console.log('result: ', result);
-  // // test1.getTradeResult(time);
+  // test1.getTradeResult(1700579030285);
   // await test1.submitOrder('Buy', 0.001);
+  const positions = new BybitPrice();
+  positions.subscribePositions();
 
   await handleUser();
   setInterval(

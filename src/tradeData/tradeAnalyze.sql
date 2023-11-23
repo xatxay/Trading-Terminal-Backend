@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS trade_data (
     ticker VARCHAR(255),
     side VARCHAR(5),
     entry NUMERIC,
+    partial VARCHAR(5),
     pnl NUMERIC,
     outcome VARCHAR(255),
     CONSTRAINT fk_news_headline_trade FOREIGN KEY (news_id)
