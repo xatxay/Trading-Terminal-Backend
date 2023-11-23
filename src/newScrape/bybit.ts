@@ -32,6 +32,7 @@ class BybitTrading {
   constructor(symbol: string) {
     this.client = new RestClientV5({
       key: process.env.BYBITAPIKEY,
+      // TODO: instead of only using process.env.BYBITSECRET, store other user secrets in db and dynamically query db for secret depending on the connected user
       secret: process.env.BYBITSECRET,
       enable_time_sync: true,
     });
