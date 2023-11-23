@@ -134,6 +134,7 @@ const formatNewsText = (newsText: string): string => {
 // };
 
 const sendAccountInfoRequest = (app: Express): void => {
+  // TODO: refactor this to use express ROUTERS
   try {
     const sendAccountInfo = new AccountInfo(app);
     sendAccountInfo.getRequest('/accountSummary');

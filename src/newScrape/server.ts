@@ -8,6 +8,7 @@ const startServer = (): void => {
   const PORT = Number(process.env.PORT);
 
   const corsOptions = {
+    // TODO: allow for all traffic
     origin: 'http://localhost:3000',
     credentials: true,
   };
