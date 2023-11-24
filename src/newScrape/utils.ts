@@ -7,8 +7,8 @@ import {
   SubmitOrder,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
-import { AccountInfo } from './routes.js';
-import { Express } from 'express';
+// import { AccountInfo } from './routes.js';
+// import { Express } from 'express';
 import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
@@ -133,23 +133,23 @@ const formatNewsText = (newsText: string): string => {
 //   }
 // };
 
-const sendAccountInfoRequest = (app: Express): void => {
-  // TODO: refactor this to use express ROUTERS
-  try {
-    const sendAccountInfo = new AccountInfo(app);
-    sendAccountInfo.getRequest('/accountSummary');
-    sendAccountInfo.getRequest('/positions');
-    sendAccountInfo.postRequest('/start');
-    sendAccountInfo.postRequest('/stop');
-    sendAccountInfo.postRequest('/closeAll');
-    sendAccountInfo.postRequest('/close');
-    sendAccountInfo.postRequest('/submitOrder');
-    sendAccountInfo.postRequest('/login');
-    sendAccountInfo.postRequest('/logout');
-  } catch (err) {
-    console.error('Error sending requests: ', err);
-  }
-};
+// const sendAccountInfoRequest = (app: Express): void => {
+//   // TODO: refactor this to use express ROUTERS
+//   try {
+//     const sendAccountInfo = new AccountInfo(app);
+//     sendAccountInfo.getRequest('/accountSummary');
+//     sendAccountInfo.getRequest('/positions');
+//     sendAccountInfo.postRequest('/start');
+//     sendAccountInfo.postRequest('/stop');
+//     sendAccountInfo.postRequest('/closeAll');
+//     sendAccountInfo.postRequest('/close');
+//     sendAccountInfo.postRequest('/submitOrder');
+//     sendAccountInfo.postRequest('/login');
+//     sendAccountInfo.postRequest('/logout');
+//   } catch (err) {
+//     console.error('Error sending requests: ', err);
+//   }
+// };
 
 const startButton = (): void => {
   console.log('started button clicked');
@@ -361,7 +361,7 @@ const checkPartials = (
 
 export {
   extractString,
-  sendAccountInfoRequest,
+  // sendAccountInfoRequest,
   extractNewsWsData,
   startButton,
   closeButton,

@@ -1,6 +1,8 @@
-import { Express, NextFunction, Request, Response } from 'express';
-import { AccountSummary, Wallet } from '../interface.js';
+import { NextFunction, Request, Response } from 'express';
+import { Wallet } from '../interface.js';
 import BybitTrading from './bybit.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import {
   closeAllButton,
   closeButton,
@@ -9,19 +11,15 @@ import {
   submitNewsOrder,
 } from './utils.js';
 import { selectUser } from '../login/createUser.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
 class AccountInfo {
   private bybitAccount: Wallet;
-  private app: Express;
 
-  constructor(app: Express) {
+  constructor() {
     this.bybitAccount = new BybitTrading('');
-    this.app = app;
   }
 
-  private authenticateToken(
+  public authenticateToken(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -43,115 +41,129 @@ class AccountInfo {
     }
   }
 
-  public getRequest(endpoint: string): void {
-    this.app.get(
-      endpoint,
-      this.authenticateToken,
-      async (_req: Request, res: Response) => {
-        try {
-          let data: AccountSummary | unknown;
-          if (endpoint === '/accountSummary') {
-            data = await this.bybitAccount.getWalletBalance();
-          } else {
-            data = await this.bybitAccount.getAllOpenPosition();
-          }
-          res.json(data);
-        } catch (err) {
-          res.status(500).send(err.message);
-        }
-      },
-    );
+  public accountSummaryHandler() {
+    return async (_req: Request, res: Response): Promise<void> => {
+      try {
+        const data = await this.bybitAccount.getWalletBalance();
+        res.json(data);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
   }
 
-  public postRequest(endpoint: string): void {
-    if (
-      ['/start', '/stop', '/closeAll', '/close', '/submitOrder'].includes(
-        endpoint,
-      )
-    ) {
-      this.app.post(
-        endpoint,
-        this.authenticateToken,
-        async (req, res): Promise<void> => {
-          switch (endpoint) {
-            case '/start': {
-              startButton();
-              res.send({ message: 'starting...' });
-              console.log('req: ', req.user);
-              break;
-            }
-            case '/stop': {
-              stopButton();
-              res.send({ message: 'stop...' });
-              break;
-            }
-            case '/closeAll': {
-              closeAllButton();
-              res.send({ message: 'closing all...' });
-              break;
-            }
-            case '/close': {
-              console.log('reqbody: ', req.body);
-              const { side, symbol } = req.body;
-              const response = await closeButton(symbol, side);
-              response.retCode === 0
-                ? res.send({ message: 'closing...' })
-                : res.send({ message: `Error closing: ${response.retMsg}` });
-              break;
-            }
-            case '/submitOrder': {
-              console.log('reqbody: ', req.body);
-              const { side, symbol, percentage } = req.body;
-              submitNewsOrder(symbol, side, +percentage);
-              res.send({ message: `${side} ${symbol} ${percentage}%` });
-              break;
-            }
-            case '/logout': {
-              req.session.destroy((err) => {
-                if (err) {
-                  res.status(500).send('Could not log out');
-                } else {
-                  res.send('Logged out successfully');
-                }
-              });
-              break;
-            }
-          }
-        },
-      );
-    } else {
-      this.app.post('/login', async (req, res) => {
+  public openPositionHandler() {
+    return async (_req: Request, res: Response): Promise<void> => {
+      try {
+        const data = await this.bybitAccount.getAllOpenPosition();
+        res.json(data);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public startButtonHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        startButton(); //log for now
+        res.send({ message: 'starting...' });
+        console.log('req: ', req.user);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public stopButtonHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        stopButton(); //log for now
+        res.send({ message: 'stopping...' });
+        console.log('req: ', req.user);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public closeAllButtonHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        closeAllButton(); //log for now
+        res.send({ message: 'closing all...' });
+        console.log('req: ', req.user);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public closeButtonHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        console.log('reqbody: ', req.body);
+        const { side, symbol } = req.body;
+        const response = await closeButton(symbol, side);
+        response.retCode === 0
+          ? res.send({ message: `closing ${symbol}` })
+          : res.send({ message: `Error closing: ${response.retMsg}` });
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public submitOrderHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        console.log('reqbody: ', req.body);
+        const { side, symbol, percentage } = req.body;
+        await submitNewsOrder(symbol, side, percentage);
+        res.send({ message: `${side} ${symbol} ${percentage}` });
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    };
+  }
+
+  public logoutHandler() {
+    return (req: Request, res: Response): void => {
+      req.session.destroy((err) => {
+        err
+          ? res.status(500).send(err.message)
+          : res.send('Logged out successfully');
+      });
+    };
+  }
+
+  public loginHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
         const { username, password } = req.body;
         console.log('Login: ', username, password);
-        try {
-          const user = await selectUser(username);
-          if (!user) {
-            res.status(400).json({ message: 'Invalid username' });
-            return;
-          }
-
-          const isMatch = await bcrypt.compare(password, user.password);
-
-          if (!isMatch) {
-            res.status(400).json({ message: 'Invalid password' });
-            return;
-          }
-
-          // req.session.userId = user.id;
-          // res.send('Logged in successfully');
-
-          const payload = { userId: user.id };
-          const token = jwt.sign(payload, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRE,
-          });
-
-          res.json({ token });
-        } catch (err) {
-          console.error('Error logging in: ', err);
-          res.status(500).send('Server error');
+        const user = await selectUser(username);
+        if (!user) {
+          res.status(400).json({ message: 'Invalid username' });
+          return;
         }
-      });
-    }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+          res.status(400).json({ message: 'Invalid password' });
+          return;
+        }
+
+        const payload = { userId: user.id };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRE,
+        });
+        res.json({ token });
+      } catch (err) {
+        res.status(500).send('Server Error');
+      }
+    };
   }
 }
 

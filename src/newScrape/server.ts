@@ -1,17 +1,18 @@
 import express, { Express } from 'express';
 import cors from 'cors';
-import { sendAccountInfoRequest } from './utils.js';
+import endpointRouter from './endpointRouter.js';
+// import { sendAccountInfoRequest } from './utils.js';
 // import session from 'express-session';
 
 const startServer = (): void => {
   const app: Express = express();
   const PORT = Number(process.env.PORT);
 
-  const corsOptions = {
-    // TODO: allow for all traffic
-    origin: 'http://localhost:3000',
-    credentials: true,
-  };
+  // const corsOptions = {
+  //   // TODO: allow for all traffic (done)
+  //   origin: 'http://localhost:3000',
+  //   credentials: true,
+  // };
 
   // app.use(
   //   session({
@@ -21,10 +22,11 @@ const startServer = (): void => {
   //     cookie: { httpOnly: true, secure: true },
   //   }),
   // );
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.json());
+  app.use(endpointRouter);
 
-  sendAccountInfoRequest(app);
+  // sendAccountInfoRequest(app);
 
   app.listen(PORT, () => {
     console.log(`http://localhost:${PORT}`);
