@@ -25,6 +25,9 @@ const createDb = async (fileName: string): Promise<void> => {
   }
 };
 
+await createDb('loginTable.sql');
+await createDb('tradeAnalyze.sql');
+
 const createUser = async (
   username: string,
   password: string,
@@ -42,6 +45,17 @@ const createUser = async (
   }
 };
 
-await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
-await createDb('loginTable.sql');
-await createDb('tradeAnalyze.sql');
+const checkExistingUser = async (email: string): Promise<number> => {
+  try {
+    const result = await pool.query(`SELECT * FROM login WHERE username = $1`, [
+      email,
+    ]);
+    return result.rowCount;
+  } catch (err) {
+    console.error('Error checking existing user: ', err);
+    throw err;
+  }
+};
+
+// await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
+export { checkExistingUser, createUser };

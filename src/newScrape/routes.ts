@@ -11,6 +11,7 @@ import {
   submitNewsOrder,
 } from './utils.js';
 import { selectUser } from '../tradeData/tradeAnalyzeUtils.js';
+import { createUser, checkExistingUser } from '../login/userDatabase.js';
 
 class AccountInfo {
   private bybitAccount: Wallet;
@@ -162,6 +163,24 @@ class AccountInfo {
         res.json({ token });
       } catch (err) {
         res.status(500).send('Server Error');
+      }
+    };
+  }
+
+  public createAccountHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { email, password } = req.body;
+        const result = await checkExistingUser(email);
+        if (result > 0) {
+          res.status(400).json({ message: 'User already exists' });
+          return;
+        }
+        console.log('New user: ', email, password);
+        await createUser(email, password);
+        res.status(201).json({ message: 'User created successfully' });
+      } catch (err) {
+        res.status(500).json({ message: 'Error creating user: ', err });
       }
     };
   }

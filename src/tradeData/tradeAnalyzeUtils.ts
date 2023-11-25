@@ -6,7 +6,6 @@ const selectUser = async (username: string): Promise<UserLogin> => {
     username,
   ]);
   const user = result.rows[0];
-  console.log('select user: ', user, typeof user);
   return user;
 };
 
