@@ -10,7 +10,7 @@ import {
   stopButton,
   submitNewsOrder,
 } from './utils.js';
-import { selectUser } from '../login/createUser.js';
+import { selectUser } from '../tradeData/tradeAnalyzeUtils.js';
 
 class AccountInfo {
   private bybitAccount: Wallet;

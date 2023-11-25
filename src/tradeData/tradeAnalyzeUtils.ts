@@ -1,4 +1,14 @@
 import pool from '../login/newPool.js';
+import { UserLogin } from '../interface.js';
+
+const selectUser = async (username: string): Promise<UserLogin> => {
+  const result = await pool.query(`SELECT * FROM login WHERE username = $1`, [
+    username,
+  ]);
+  const user = result.rows[0];
+  console.log('select user: ', user, typeof user);
+  return user;
+};
 
 const insertNewsHeadline = async (
   id: string,
@@ -81,4 +91,5 @@ export {
   insertNewsHeadline,
   insertTradeData,
   updateTradeOutcome,
+  selectUser,
 };

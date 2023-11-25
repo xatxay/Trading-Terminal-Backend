@@ -11,9 +11,9 @@ import {
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
-import { extractString, formatNewsText } from './newScrape/utils.js';
-import createDb from './login/createDatabase.js';
-import { createUser } from './login/createUser.js';
+import { extractString } from './newScrape/utils.js';
+// import createDb from './login/createDatabase.js';
+// import { createUser } from './login/createUser.js';
 import dotenv from 'dotenv';
 // import { BybitPrice } from './newScrape/getPrice.js';
 
@@ -25,20 +25,20 @@ const main = async (): Promise<void> => {
   const treeNews = new TreeNews(process.env.TREENEWS);
   treeNews.startPing();
 
-  // TODO: remove create database scripts
-  // TODO: refactor database scripts into node scripts to run on ec2 machines
+  // TODO: remove create database scripts (done)
+  // TODO: refactor database scripts into node scripts to run on ec2 machines (done)
   // TODO: create '/create-user' endpoint that takes in email and password and creates a new user in the 'login' table for the db
   // TODO: set up bybit to handle multiple user credentials
   // TODO: create bybit api integration for other users
-  const handleUser = async (): Promise<void> => {
-    const account = {
-      username: process.env.USERNAMELOGIN,
-      password: process.env.PASSWORD,
-    };
-    await createDb('loginTable.sql');
-    await createDb('tradeAnalyze.sql');
-    await createUser(account.username, account.password);
-  };
+  // const handleUser = async (): Promise<void> => {
+  //   const account = {
+  //     username: process.env.USERNAMELOGIN,
+  //     password: process.env.PASSWORD,
+  //   };
+  // await createDb('loginTable.sql');
+  // await createDb('tradeAnalyze.sql');
+  //   await createUser(account.username, account.password);
+  // };
 
   const routesHandling = (): void => {
     startServer();
@@ -150,10 +150,8 @@ const main = async (): Promise<void> => {
   // await test1.submitOrder('Buy', 0.001);
   // const positions = new BybitPrice();
   // positions.subscribePositions();
-  const newsTesting = process.env.NEWSTESTING;
-  formatNewsText(newsTesting);
 
-  await handleUser();
+  // await handleUser();
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),
