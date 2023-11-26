@@ -1,9 +1,9 @@
 import pool from '../login/newPool.js';
 import { UserLogin } from '../interface.js';
 
-const selectUser = async (username: string): Promise<UserLogin> => {
-  const result = await pool.query(`SELECT * FROM login WHERE username = $1`, [
-    username,
+const selectUser = async (email: string): Promise<UserLogin> => {
+  const result = await pool.query(`SELECT * FROM login WHERE email = $1`, [
+    email,
   ]);
   const user = result.rows[0];
   return user;

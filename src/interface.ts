@@ -173,7 +173,7 @@ export interface OpenOrder {
 
 export interface UserLogin {
   id: number;
-  username: string;
+  email: string;
   password: string;
 }
 

@@ -28,26 +28,23 @@ const createDb = async (fileName: string): Promise<void> => {
 await createDb('loginTable.sql');
 await createDb('tradeAnalyze.sql');
 
-const createUser = async (
-  username: string,
-  password: string,
-): Promise<void> => {
+const createUser = async (email: string, password: string): Promise<void> => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       `
-        INSERT INTO login (username, password) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING
+        INSERT INTO login (email, password) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING
         `,
-      [username, hashedPassword],
+      [email, hashedPassword],
     );
   } catch (err) {
-    console.error('Error inserting username and password: ', err);
+    console.error('Error inserting email and password: ', err);
   }
 };
 
 const checkExistingUser = async (email: string): Promise<number> => {
   try {
-    const result = await pool.query(`SELECT * FROM login WHERE username = $1`, [
+    const result = await pool.query(`SELECT * FROM login WHERE email = $1`, [
       email,
     ]);
     return result.rowCount;
@@ -57,5 +54,17 @@ const checkExistingUser = async (email: string): Promise<number> => {
   }
 };
 
+const updateApi = async (email: string, apiKey: string, apiSecret: string) => {
+  try {
+    const response = await pool.query(
+      `UPDATE login SET apiKey = $1, apiSecret = $2 WHERE email = $3`,
+      [apiKey, apiSecret, email],
+    );
+    console.log('updating data: ', response);
+  } catch (err) {
+    console.log('Error updating api data: ', err);
+  }
+};
+
 // await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
-export { checkExistingUser, createUser };
+export { checkExistingUser, createUser, updateApi };

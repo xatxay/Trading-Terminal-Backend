@@ -11,7 +11,11 @@ import {
   submitNewsOrder,
 } from './utils.js';
 import { selectUser } from '../tradeData/tradeAnalyzeUtils.js';
-import { createUser, checkExistingUser } from '../login/userDatabase.js';
+import {
+  createUser,
+  checkExistingUser,
+  updateApi,
+} from '../login/userDatabase.js';
 
 class AccountInfo {
   private bybitAccount: Wallet;
@@ -141,11 +145,12 @@ class AccountInfo {
   public loginHandler() {
     return async (req: Request, res: Response): Promise<void> => {
       try {
-        const { username, password } = req.body;
-        console.log('Login: ', username, password);
-        const user = await selectUser(username);
+        const { email, password } = req.body;
+        console.log('Login: ', email, password);
+        const user = await selectUser(email);
+        console.log('user: ', user);
         if (!user) {
-          res.status(400).json({ message: 'Invalid username' });
+          res.status(400).json({ message: 'Invalid email' });
           return;
         }
 
@@ -180,7 +185,20 @@ class AccountInfo {
         await createUser(email, password);
         res.status(201).json({ message: 'User created successfully' });
       } catch (err) {
-        res.status(500).json({ message: 'Error creating user: ', err });
+        res.status(500).json({ message: 'Error creating user ', err });
+      }
+    };
+  }
+
+  public submitApiHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { email, apiKey, apiSecret } = req.body;
+        console.log('api handler: ', email, apiKey, apiSecret);
+        await updateApi(email, apiKey, apiSecret);
+      } catch (err) {
+        res.status(500).json({ message: 'Error saving api key: ', err });
+        console.error('Error submitting api key: ', err);
       }
     };
   }

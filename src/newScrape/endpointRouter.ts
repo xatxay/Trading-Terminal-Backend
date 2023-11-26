@@ -30,5 +30,10 @@ router.post(
 router.post('/logout', account.authenticateToken, account.logoutHandler());
 router.post('/login', account.loginHandler());
 router.post('/register', account.createAccountHandler());
+router.post(
+  '/apiSubmit',
+  account.authenticateToken,
+  account.submitApiHandler(),
+);
 
 export default router;

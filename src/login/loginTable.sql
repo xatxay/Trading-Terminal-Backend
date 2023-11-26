@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS login (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    UNIQUE (username)
+    apiKey VARCHAR(255),
+    apiSecret VARCHAR(255),
+    UNIQUE (email)
 );
