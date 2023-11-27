@@ -222,3 +222,8 @@ export interface SpecificCoin {
   entryPrice: string;
   size: string;
 }
+
+export interface CheckApiData {
+  apikey: string;
+  apisecret: string;
+}

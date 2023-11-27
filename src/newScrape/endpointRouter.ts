@@ -35,5 +35,10 @@ router.post(
   account.authenticateToken,
   account.submitApiHandler(),
 );
+router.post(
+  '/apiCheck',
+  account.authenticateToken,
+  account.checkSubmittedApi(),
+);
 
 export default router;

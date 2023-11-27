@@ -15,6 +15,7 @@ import {
   createUser,
   checkExistingUser,
   updateApi,
+  checkUserSubmitApi,
 } from '../login/userDatabase.js';
 
 class AccountInfo {
@@ -195,10 +196,35 @@ class AccountInfo {
       try {
         const { email, apiKey, apiSecret } = req.body;
         console.log('api handler: ', email, apiKey, apiSecret);
-        await updateApi(email, apiKey, apiSecret);
+        const response = await updateApi(email, apiKey, apiSecret);
+        if (response === 0) {
+          res.status(400).json({ message: 'Error saving api keys' });
+        } else {
+          res.status(201).json({ message: 'updated api successfully' });
+        }
       } catch (err) {
         res.status(500).json({ message: 'Error saving api key: ', err });
         console.error('Error submitting api key: ', err);
+      }
+    };
+  }
+
+  public checkSubmittedApi() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { email } = req.body;
+        console.log('check email: ', email);
+        const response = await checkUserSubmitApi(email);
+        console.log('checked: ', response);
+        if (response && response.apikey && response.apisecret) {
+          console.log('checking');
+          res.json({ apiKey: response.apikey, apiSecret: response.apisecret });
+        } else {
+          res.status(400).json({ message: 'User has not submitted API key' });
+        }
+      } catch (err) {
+        res.status(500).json({ message: 'Error checking user api' });
+        console.error('Error check submitted user api: ', err);
       }
     };
   }

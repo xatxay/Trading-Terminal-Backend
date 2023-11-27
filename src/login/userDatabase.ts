@@ -1,32 +1,9 @@
-import pg from 'pg';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { readFile } from 'fs/promises';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import { CheckApiData } from '../interface.js';
+import pool from './newPool.js';
 
 dotenv.config();
-
-const pool = new pg.Pool({
-  connectionString: process.env.POSTGRES,
-});
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const createDb = async (fileName: string): Promise<void> => {
-  try {
-    const path = `${__dirname}/${fileName}`;
-    const setupDb = await readFile(path, { encoding: 'utf-8' });
-    await pool.query(setupDb);
-    console.log(`Created ${fileName} database successfully`);
-  } catch (err) {
-    console.error(`Error creating ${fileName} database: `, err);
-  }
-};
-
-await createDb('loginTable.sql');
-await createDb('tradeAnalyze.sql');
 
 const createUser = async (email: string, password: string): Promise<void> => {
   try {
@@ -54,17 +31,36 @@ const checkExistingUser = async (email: string): Promise<number> => {
   }
 };
 
-const updateApi = async (email: string, apiKey: string, apiSecret: string) => {
+const updateApi = async (
+  email: string,
+  apiKey: string,
+  apiSecret: string,
+): Promise<number> => {
   try {
     const response = await pool.query(
       `UPDATE login SET apiKey = $1, apiSecret = $2 WHERE email = $3`,
       [apiKey, apiSecret, email],
     );
     console.log('updating data: ', response);
+    return response.rowCount;
   } catch (err) {
     console.log('Error updating api data: ', err);
+    throw err;
+  }
+};
+
+const checkUserSubmitApi = async (email: string): Promise<CheckApiData> => {
+  try {
+    const response = await pool.query(
+      `SELECT apikey, apisecret FROM login WHERE email = $1`,
+      [email],
+    );
+    return response.rows[0];
+  } catch (err) {
+    console.log('Failed checking existing user api: ', err);
+    throw err;
   }
 };
 
 // await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
-export { checkExistingUser, createUser, updateApi };
+export { checkExistingUser, createUser, updateApi, checkUserSubmitApi };

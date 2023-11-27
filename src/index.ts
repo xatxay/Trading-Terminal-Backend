@@ -13,6 +13,7 @@ import startServer from './newScrape/server.js';
 // import TreeNews from './newScrape/treeNews.js';
 import { extractString } from './newScrape/utils.js';
 import dotenv from 'dotenv';
+// import { updateApi } from './login/userDatabase.js';
 // import { BybitPrice } from './newScrape/getPrice.js';
 
 dotenv.config();
@@ -135,6 +136,8 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
+
+  // updateApi('assds@1233', '1', '2');
 
   setInterval(
     async () =>
