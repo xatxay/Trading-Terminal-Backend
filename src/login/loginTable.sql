@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS login (
     password VARCHAR(255) NOT NULL,
     apiKey VARCHAR(255),
     apiSecret VARCHAR(255),
+    openai VARCHAR(255),
     UNIQUE (email)
 );

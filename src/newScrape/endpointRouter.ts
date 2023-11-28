@@ -40,5 +40,15 @@ router.post(
   account.authenticateToken,
   account.checkSubmittedApi(),
 );
+router.post(
+  '/openAi',
+  account.authenticateToken,
+  account.submitOpenAiHandler(),
+);
+router.post(
+  '/openAiCheck',
+  account.authenticateToken,
+  account.checkSubmittedOpenAi(),
+);
 
 export default router;

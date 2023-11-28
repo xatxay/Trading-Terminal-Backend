@@ -16,6 +16,8 @@ import {
   checkExistingUser,
   updateApi,
   checkUserSubmitApi,
+  updateOpenAi,
+  checkUserSubmitOpenAiApi,
 } from '../login/userDatabase.js';
 
 class AccountInfo {
@@ -195,6 +197,7 @@ class AccountInfo {
     return async (req: Request, res: Response): Promise<void> => {
       try {
         const { email, apiKey, apiSecret } = req.body;
+        // const bybit = new BybitTrading('');
         console.log('api handler: ', email, apiKey, apiSecret);
         const response = await updateApi(email, apiKey, apiSecret);
         if (response === 0) {
@@ -225,6 +228,43 @@ class AccountInfo {
       } catch (err) {
         res.status(500).json({ message: 'Error checking user api' });
         console.error('Error check submitted user api: ', err);
+      }
+    };
+  }
+
+  public submitOpenAiHandler() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { email, openAiApi } = req.body;
+        console.log('openai update: ', email, openAiApi);
+        const response = await updateOpenAi(email, openAiApi);
+        if (response && response > 0) {
+          res.status(201).json({ message: 'Updated openai api successfully' });
+        } else {
+          res.status(400).json({ message: 'Error saving openai api key' });
+        }
+      } catch (err) {
+        res.status(500).json({ message: 'Error saving openai api' });
+        console.error('Failed saving openai api: ', err);
+      }
+    };
+  }
+
+  public checkSubmittedOpenAi() {
+    return async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { email } = req.body;
+        const response = await checkUserSubmitOpenAiApi(email);
+        if (response && response.openai) {
+          res.json({ openAi: response.openai });
+        } else {
+          res
+            .status(400)
+            .json({ message: 'User has not submitted openAi api' });
+        }
+      } catch (err) {
+        res.status(500).json({ message: 'No openai api available' });
+        console.error('Failed checking existing openAi api: ', err);
       }
     };
   }

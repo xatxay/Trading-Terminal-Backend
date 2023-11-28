@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import { CheckApiData } from '../interface.js';
+import { CheckApiData, CheckOpenAi } from '../interface.js';
 import pool from './newPool.js';
 
 dotenv.config();
@@ -49,6 +49,23 @@ const updateApi = async (
   }
 };
 
+const updateOpenAi = async (
+  email: string,
+  openAiApi: string,
+): Promise<number> => {
+  try {
+    const response = await pool.query(
+      `UPDATE login SET openai = $1 WHERE email = $2`,
+      [openAiApi, email],
+    );
+    console.log('update openai: ', email, openAiApi);
+    return response.rowCount;
+  } catch (err) {
+    console.log('Error updating openai: ', err);
+    throw err;
+  }
+};
+
 const checkUserSubmitApi = async (email: string): Promise<CheckApiData> => {
   try {
     const response = await pool.query(
@@ -62,5 +79,28 @@ const checkUserSubmitApi = async (email: string): Promise<CheckApiData> => {
   }
 };
 
+const checkUserSubmitOpenAiApi = async (
+  email: string,
+): Promise<CheckOpenAi> => {
+  try {
+    const response = await pool.query(
+      `SELECT openai FROM login WHERE email = $1`,
+      [email],
+    );
+    console.log('checking openai: ', response);
+    return response.rows[0];
+  } catch (err) {
+    console.error('Failed checking existing user open ai: ', err);
+    throw err;
+  }
+};
+
 // await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
-export { checkExistingUser, createUser, updateApi, checkUserSubmitApi };
+export {
+  checkExistingUser,
+  createUser,
+  updateApi,
+  checkUserSubmitApi,
+  updateOpenAi,
+  checkUserSubmitOpenAiApi,
+};

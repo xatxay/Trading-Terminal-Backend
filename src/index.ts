@@ -27,8 +27,8 @@ const main = async (): Promise<void> => {
   // TODO: remove create database scripts (done)
   // TODO: refactor database scripts into node scripts to run on ec2 machines (done)
   // TODO: create '/create-user' endpoint that takes in email and password and creates a new user in the 'login' table for the db (done)
-  // TODO: set up bybit to handle multiple user credentials
-  // TODO: create bybit api integration for other users
+  // TODO: set up bybit to handle multiple user credentials (done)
+  // TODO: create bybit api integration for other users (done)
   // const handleUser = async (): Promise<void> => {
   //   const account = {
   //     username: process.env.USERNAMELOGIN,

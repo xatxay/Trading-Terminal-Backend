@@ -227,3 +227,7 @@ export interface CheckApiData {
   apikey: string;
   apisecret: string;
 }
+
+export interface CheckOpenAi {
+  openai: string;
+}
