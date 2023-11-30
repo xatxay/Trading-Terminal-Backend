@@ -5,8 +5,8 @@ import EventEmitter from 'events';
 import { selectApiWithId } from '../login/userDatabase.js';
 
 abstract class BybitClient extends EventEmitter {
-  protected client: RestClientV5;
-  protected wsClient: WebsocketClient;
+  protected client: RestClientV5 | null = null;
+  protected wsClient: WebsocketClient | null = null;
 
   constructor() {
     super();
@@ -26,7 +26,6 @@ abstract class BybitClient extends EventEmitter {
 
     appEmit.once('authRequest', async (data: Decoded) => {
       if (data) {
-        console.log('decodinggggggg!@#');
         const api = await selectApiWithId(data.userId);
         this.loadAppInit(api.apikey, api.apisecret);
       }

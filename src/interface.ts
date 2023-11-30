@@ -233,7 +233,7 @@ export interface CheckOpenAi {
 }
 
 export interface BybitApiData {
-  email: string;
+  email?: string;
   apiKey: string;
   apiSecret: string;
 }

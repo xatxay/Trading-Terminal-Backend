@@ -6,6 +6,7 @@ import {
   APIResponseV3WithTime,
   CategoryCursorListV5,
   ClosedPnLV5,
+  PositionV5,
 } from 'bybit-api';
 import {
   AccountSummary,
@@ -40,6 +41,10 @@ class BybitTrading extends BybitClient {
     this.symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
   }
 
+  private clientsAreInit(): boolean {
+    return this.client !== null && this.wsClient !== null;
+  }
+
   private async getAssetPrice(): Promise<number> {
     try {
       const response = await this.client.getTickers({
@@ -57,6 +62,8 @@ class BybitTrading extends BybitClient {
 
   public async getWalletBalance(): Promise<AccountSummary> {
     try {
+      const isInit = this.clientsAreInit();
+      if (!isInit) return null;
       const response = await this.client.getWalletBalance({
         accountType: 'UNIFIED',
         coin: 'USDT',
@@ -127,8 +134,10 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  public async getAllOpenPosition(): Promise<unknown> {
+  public async getAllOpenPosition(): Promise<PositionV5[]> {
     try {
+      const isInit = this.clientsAreInit();
+      if (!isInit) return null;
       const response = await this.client.getPositionInfo({
         category: this.category,
         settleCoin: 'USDT',
