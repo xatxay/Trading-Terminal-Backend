@@ -4,6 +4,7 @@ import BybitTrading from './bybit.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import {
+  appEmit,
   closeAllButton,
   closeButton,
   startButton,
@@ -42,7 +43,9 @@ class AccountInfo {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('decoded: ', decoded);
       req.user = decoded;
+      appEmit.emit('authRequest', decoded);
       next();
     } catch (err) {
       res.status(401).json({ message: 'Invalid Token' });
@@ -169,6 +172,10 @@ class AccountInfo {
           expiresIn: process.env.JWT_EXPIRE,
         });
         res.json({ token });
+        appEmit.emit('userLogin', {
+          apiKey: user.apikey,
+          apiSecret: user.apisecret,
+        });
       } catch (err) {
         res.status(500).send('Server Error');
       }
@@ -197,14 +204,14 @@ class AccountInfo {
     return async (req: Request, res: Response): Promise<void> => {
       try {
         const { email, apiKey, apiSecret } = req.body;
-        // const bybit = new BybitTrading('');
         console.log('api handler: ', email, apiKey, apiSecret);
         const response = await updateApi(email, apiKey, apiSecret);
         if (response === 0) {
           res.status(400).json({ message: 'Error saving api keys' });
         } else {
-          res.status(201).json({ message: 'updated api successfully' });
+          res.status(201).json({ message: 'Updated api successful!' });
         }
+        appEmit.emit('bybitApi', { email, apiKey, apiSecret });
       } catch (err) {
         res.status(500).json({ message: 'Error saving api key: ', err });
         console.error('Error submitting api key: ', err);
@@ -239,7 +246,7 @@ class AccountInfo {
         console.log('openai update: ', email, openAiApi);
         const response = await updateOpenAi(email, openAiApi);
         if (response && response > 0) {
-          res.status(201).json({ message: 'Updated openai api successfully' });
+          res.status(201).json({ message: 'Updated openai api successful!' });
         } else {
           res.status(400).json({ message: 'Error saving openai api key' });
         }

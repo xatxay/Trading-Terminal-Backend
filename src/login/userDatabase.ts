@@ -41,7 +41,7 @@ const updateApi = async (
       `UPDATE login SET apiKey = $1, apiSecret = $2 WHERE email = $3`,
       [apiKey, apiSecret, email],
     );
-    console.log('updating data: ', response);
+    console.log('updating bybit api data: ', response.rowCount);
     return response.rowCount;
   } catch (err) {
     console.log('Error updating api data: ', err);
@@ -68,10 +68,12 @@ const updateOpenAi = async (
 
 const checkUserSubmitApi = async (email: string): Promise<CheckApiData> => {
   try {
+    console.log('check email: ', email);
     const response = await pool.query(
       `SELECT apikey, apisecret FROM login WHERE email = $1`,
       [email],
     );
+    console.log('checkyser: ', response);
     return response.rows[0];
   } catch (err) {
     console.log('Failed checking existing user api: ', err);
@@ -87,7 +89,7 @@ const checkUserSubmitOpenAiApi = async (
       `SELECT openai FROM login WHERE email = $1`,
       [email],
     );
-    console.log('checking openai: ', response);
+    console.log('checking openai: ', response.rows[0]);
     return response.rows[0];
   } catch (err) {
     console.error('Failed checking existing user open ai: ', err);
@@ -95,7 +97,20 @@ const checkUserSubmitOpenAiApi = async (
   }
 };
 
-// await createUser(process.env.EMAIL_LOGIN, process.env.PASSWORD);
+const selectApiWithId = async (id: number): Promise<CheckApiData> => {
+  try {
+    const userId = id.toString();
+    const response = await pool.query(
+      `SELECT apikey, apisecret FROM login WHERE id = $1`,
+      [userId],
+    );
+    return response.rows[0];
+  } catch (err) {
+    console.error('Failed getting api data with user id: ', err);
+    throw err;
+  }
+};
+
 export {
   checkExistingUser,
   createUser,
@@ -103,4 +118,5 @@ export {
   checkUserSubmitApi,
   updateOpenAi,
   checkUserSubmitOpenAiApi,
+  selectApiWithId,
 };

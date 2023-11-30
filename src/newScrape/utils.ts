@@ -13,6 +13,7 @@ import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
+import EventEmitter from 'events';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -121,6 +122,8 @@ const formatNewsText = (newsText: string): string => {
     throw err;
   }
 };
+
+export const appEmit = new EventEmitter();
 
 // const treeWebsocket = (): TreeNews => {
 //   try {
@@ -361,7 +364,6 @@ const checkPartials = (
 
 export {
   extractString,
-  // sendAccountInfoRequest,
   extractNewsWsData,
   startButton,
   closeButton,
@@ -377,5 +379,4 @@ export {
   chatgptClosePositionData,
   checkPartials,
   formatNewsText,
-  // isPositionData,
 };

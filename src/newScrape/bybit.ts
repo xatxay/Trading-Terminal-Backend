@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
 import {
-  RestClientV5,
   OrderTypeV5,
   CategoryV5,
   OrderTimeInForceV5,
@@ -14,11 +13,11 @@ import {
   SpecificCoin,
   SubmitOrder,
 } from '../interface.js';
+import BybitClient from './bybitClient.js';
 
-class BybitTrading {
-  private client: RestClientV5;
+class BybitTrading extends BybitClient {
   private category: CategoryV5 = 'linear';
-  private orderType: OrderTypeV5 = 'Market'; //change later when use///////!!!!!!@@@@@@
+  private orderType: OrderTypeV5 = 'Market';
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
   private symbol: string;
@@ -27,15 +26,17 @@ class BybitTrading {
   private inPosition: number;
   private tp: string;
   private sl: string;
+
   // private openPosition: unknown;
 
   constructor(symbol: string) {
-    this.client = new RestClientV5({
-      key: process.env.BYBITAPIKEY,
-      // TODO: instead of only using process.env.BYBITSECRET, store other user secrets in db and dynamically query db for secret depending on the connected user
-      secret: process.env.BYBITSECRET,
-      enable_time_sync: true,
-    });
+    super();
+    // this.client = new RestClientV5({
+    // key: process.env.BYBITAPIKEY,
+    // // TODO: instead of only using process.env.BYBITSECRET, store other user secrets in db and dynamically query db for secret depending on the connected user
+    // secret: process.env.BYBITSECRET,
+    // enable_time_sync: true,
+    // });
     this.symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
   }
 
@@ -68,6 +69,7 @@ class BybitTrading {
         ),
         totalPerpUPL: Number(response.result.list[0].totalPerpUPL),
       };
+      console.log('checking wallet balance');
       return accountSummary;
     } catch (err) {
       console.error('Failed getting balance: ', err);
@@ -131,7 +133,7 @@ class BybitTrading {
         category: this.category,
         settleCoin: 'USDT',
       });
-      // console.log('ALL OPENORDER: ', response.result.list);
+      console.log('checking all positions');
       return response.result.list;
     } catch (err) {
       console.log('Error getting all open positions: ', err);

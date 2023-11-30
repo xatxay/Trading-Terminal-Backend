@@ -1,7 +1,7 @@
 import pool from '../login/newPool.js';
-import { UserLogin } from '../interface.js';
+import { CheckApiData } from '../interface.js';
 
-const selectUser = async (email: string): Promise<UserLogin> => {
+const selectUser = async (email: string): Promise<CheckApiData> => {
   const result = await pool.query(`SELECT * FROM login WHERE email = $1`, [
     email,
   ]);

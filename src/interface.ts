@@ -223,11 +223,23 @@ export interface SpecificCoin {
   size: string;
 }
 
-export interface CheckApiData {
+export interface CheckApiData extends UserLogin {
   apikey: string;
   apisecret: string;
 }
 
 export interface CheckOpenAi {
   openai: string;
+}
+
+export interface BybitApiData {
+  email: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+export interface Decoded {
+  userId: number;
+  iat: number;
+  exp: number;
 }
