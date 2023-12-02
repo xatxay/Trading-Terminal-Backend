@@ -16,6 +16,7 @@ class BybitPrice extends BybitClient {
   }
 
   private initializeWebsocket(): void {
+    if (!this.wsClient) return;
     this.wsClient.on('update', async (data: V5WsData) => {
       if (data.topic === 'position' && !data.data[0].side) {
         const positionResult = {
@@ -56,6 +57,7 @@ class BybitPrice extends BybitClient {
 
   private subscribePositions(): void {
     try {
+      if (!this.wsClient) return;
       this.wsClient.subscribeV5('position', 'linear');
     } catch (err) {
       console.error('Error subscribing to positions: ', err);

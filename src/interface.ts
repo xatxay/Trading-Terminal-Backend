@@ -180,9 +180,9 @@ export interface UserLogin {
 export interface ResponseBybit {
   retCode: number;
   retMsg: string;
-  result: Record<string, never> | Result | TradeResult;
+  result?: Record<string, never> | Result | TradeResult;
   retExtInfo?: Record<string, never>;
-  time: number;
+  time?: number;
 }
 
 export interface TradeResult {
@@ -243,3 +243,10 @@ export interface Decoded {
   iat: number;
   exp: number;
 }
+
+export type Signature = {
+  apiKey: string;
+  apiSecret: string;
+  timeStamp?: string;
+  recvWindow?: string;
+};

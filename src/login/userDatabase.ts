@@ -73,7 +73,7 @@ const checkUserSubmitApi = async (email: string): Promise<CheckApiData> => {
       `SELECT apikey, apisecret FROM login WHERE email = $1`,
       [email],
     );
-    console.log('checkyser: ', response);
+    console.log('checkyser: ', response.rows[0]);
     return response.rows[0];
   } catch (err) {
     console.log('Failed checking existing user api: ', err);
@@ -111,6 +111,20 @@ const selectApiWithId = async (id: number): Promise<CheckApiData> => {
   }
 };
 
+const selectOpenAiWithId = async (id: number): Promise<string> => {
+  try {
+    const userId = id.toString();
+    const response = await pool.query(
+      `SELECT openai FROM login WHERE id = $1`,
+      [userId],
+    );
+    return response.rows[0];
+  } catch (err) {
+    console.error('Error getting openai with id: ', err);
+    throw err;
+  }
+};
+
 export {
   checkExistingUser,
   createUser,
@@ -119,4 +133,5 @@ export {
   updateOpenAi,
   checkUserSubmitOpenAiApi,
   selectApiWithId,
+  selectOpenAiWithId,
 };

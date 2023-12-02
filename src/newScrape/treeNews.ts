@@ -24,11 +24,13 @@ const bybitPercentage = new BybitPrice();
 class TreeNews {
   private ws: WebSocket;
   private tickerSubscribe: string[];
+  private analyzer: OpenAiAnalyze;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
     this.setupEvents();
     this.tickerSubscribe = [];
+    this.analyzer = new OpenAiAnalyze();
   }
 
   private setupEvents(): void {
@@ -43,7 +45,6 @@ class TreeNews {
   }
 
   private async onMessage(data: WebSocket.RawData): Promise<void> {
-    const apiKey = process.env.OPENAI_API_KEY;
     const messageObj = extractNewsWsData(data);
 
     if (messageObj.suggestions) {
@@ -52,8 +53,10 @@ class TreeNews {
 
     const wsTimeStamp = getTimeStamp(messageObj.time);
 
-    const analyzer = new OpenAiAnalyze(apiKey, messageObj.newsHeadline);
-    const response = await analyzer.callOpenAi(messageObj.suggestions);
+    const response = await this.analyzer.callOpenAi(
+      messageObj.newsHeadline,
+      messageObj.suggestions,
+    );
 
     const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
 

@@ -52,6 +52,7 @@
     "bybit-api": "^3.7.3",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "crypto-ts": "^1.0.2",
     "dotenv": "^16.3.1",
     "events": "^3.3.0",

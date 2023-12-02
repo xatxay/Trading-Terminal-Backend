@@ -5,6 +5,7 @@ import {
   ResponseBybit,
   TreeNewsMessage,
   SubmitOrder,
+  Signature,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
 // import { AccountInfo } from './routes.js';
@@ -14,6 +15,8 @@ import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
 import EventEmitter from 'events';
+import * as crypto from 'crypto';
+import axios from 'axios';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -354,6 +357,51 @@ const checkPartials = (
   }
 };
 
+const generateSignature = ({
+  apiKey,
+  apiSecret,
+  timeStamp,
+  recvWindow,
+}: Signature): string => {
+  const params = timeStamp + apiKey + recvWindow;
+  const signature = crypto
+    .createHmac('sha256', apiSecret)
+    .update(params)
+    .digest('hex');
+  console.log('sign: ', signature);
+  return signature;
+};
+
+const validateBybitApi = async ({
+  apiKey,
+  apiSecret,
+}: Signature): Promise<ResponseBybit> => {
+  const timeStamp = Date.now().toString();
+  const recvWindow = '5000';
+  const apiUrl = process.env.QUERY_API;
+  console.log('apiurl: ', apiUrl);
+  const sign = generateSignature({ apiKey, apiSecret, timeStamp, recvWindow });
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'X-BAPI-API-KEY': apiKey,
+        'X-BAPI-TIMESTAMP': timeStamp,
+        'X-BAPI-RECV-WINDOW': recvWindow,
+        'X-BAPI-SIGN': sign,
+      },
+    });
+    console.log('validate api: ', response.data);
+    const bybitResponse: ResponseBybit = {
+      retCode: response.data.retCode,
+      retMsg: response.data.retMsg,
+    }; // axios type any any
+    return bybitResponse;
+  } catch (err) {
+    console.error('Error validating api: ', err);
+    throw err;
+  }
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -379,4 +427,5 @@ export {
   chatgptClosePositionData,
   checkPartials,
   formatNewsText,
+  validateBybitApi,
 };

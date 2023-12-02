@@ -17,17 +17,10 @@ abstract class BybitClient extends EventEmitter {
       }
     });
 
-    appEmit.on('userLogin', (data: BybitApiData) => {
-      if (data) {
-        console.log('userLoginEmit: ', data.apiKey, data.apiSecret);
-        this.initLoginApiHandler(data.apiKey, data.apiSecret);
-      }
-    });
-
-    appEmit.once('authRequest', async (data: Decoded) => {
+    appEmit.on('authRequest', async (data: Decoded) => {
       if (data) {
         const api = await selectApiWithId(data.userId);
-        this.loadAppInit(api.apikey, api.apisecret);
+        this.updateApi(api.apikey, api.apisecret);
       }
     });
   }
@@ -47,34 +40,6 @@ abstract class BybitClient extends EventEmitter {
 
     console.log('client: ', this.client);
     console.log('wsclient: ', this.wsClient);
-  }
-
-  private initLoginApiHandler(apiKey: string, apiSecret: string): void {
-    this.client = new RestClientV5({
-      key: apiKey,
-      secret: apiSecret,
-      enable_time_sync: true,
-    });
-
-    this.wsClient = new WebsocketClient({
-      key: apiKey,
-      secret: apiSecret,
-      market: 'v5',
-    });
-  }
-
-  private loadAppInit(apiKey: string, apiSecret: string): void {
-    this.client = new RestClientV5({
-      key: apiKey,
-      secret: apiSecret,
-      enable_time_sync: true,
-    });
-
-    this.wsClient = new WebsocketClient({
-      key: apiKey,
-      secret: apiSecret,
-      market: 'v5',
-    });
   }
 }
 

@@ -10,7 +10,7 @@ import {
 // import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-// import TreeNews from './newScrape/treeNews.js';
+import TreeNews from './newScrape/treeNews.js';
 import { extractString } from './newScrape/utils.js';
 import dotenv from 'dotenv';
 // import { updateApi } from './login/userDatabase.js';
@@ -19,10 +19,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const main = async (): Promise<void> => {
-  const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
-  // const treeNews = new TreeNews(process.env.TREENEWS);
-  // treeNews.startPing();
+  const treeNews = new TreeNews(process.env.TREENEWS);
+  treeNews.startPing();
 
   // TODO: remove create database scripts (done)
   // TODO: refactor database scripts into node scripts to run on ec2 machines (done)
@@ -92,8 +91,8 @@ const main = async (): Promise<void> => {
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-        response = await analyzer.callOpenAi();
+      const analyzer = new OpenAiAnalyze(),
+        response = await analyzer.callOpenAi(binanceAnnouncementListing);
 
       const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
@@ -124,8 +123,8 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      const analyzer = new OpenAiAnalyze(apiKey, title);
-      const response = await analyzer.callOpenAi();
+      const analyzer = new OpenAiAnalyze();
+      const response = await analyzer.callOpenAi(title);
       const TickerAndSentiment = extractString(response);
       console.log('SEC analyze: ', TickerAndSentiment);
 
@@ -138,6 +137,9 @@ const main = async (): Promise<void> => {
   };
 
   // updateApi('assds@1233', '1', '2');
+  // appEmit.on('openai', (apiKey: string) => {
+  //   console.log('index: ', apiKey);
+  // });
 
   setInterval(
     async () =>

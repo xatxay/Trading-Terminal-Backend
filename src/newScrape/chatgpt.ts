@@ -1,39 +1,63 @@
 import OpenAI from 'openai';
+import { appEmit } from './utils.js';
 
 class OpenAiAnalyze {
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
   private promptContent: string;
-  private newsHeadline: string;
   private systemContent: string;
   private promptContentWithTicker: string;
 
-  constructor(apiKey: string, newsHeadline: string) {
+  constructor() {
     this.promptContent = process.env.CONTENT;
     this.promptContentWithTicker = process.env.CONTENTWITHTICKER;
-    this.openai = new OpenAI({ apiKey: apiKey });
-    this.newsHeadline = newsHeadline;
     this.systemContent = process.env.SYSTEMCONTENT;
+    appEmit.on('openai', (apiKey: string) => {
+      console.log('emitting');
+      if (apiKey) {
+        console.log('checking openai***', apiKey);
+
+        this.updateOpenAiClient(apiKey);
+      }
+    });
   }
 
-  public callOpenAi = async (ticker?: string[]): Promise<string> => {
+  private hasOpenApi = (): boolean => {
+    return this.openai !== null;
+  };
+
+  private updateOpenAiClient(apiKey: string): void {
+    this.openai = new OpenAI({ apiKey: apiKey });
+    console.log('updateddd: ', this.openai);
+  }
+
+  public callOpenAi = async (
+    newsHeadline: string,
+    ticker?: string[],
+  ): Promise<string> => {
     try {
+      const hasApi = this.hasOpenApi();
+      console.log('hasopenapi: ', hasApi);
+      if (!hasApi) {
+        console.log('nulllllllllll');
+        return null;
+      }
       const completion = await this.openai.chat.completions.create({
         messages: [
           { role: 'system', content: this.systemContent },
           {
             role: 'user',
             content: ticker
-              ? `${this.promptContentWithTicker} ${ticker} , news headline: ${this.newsHeadline}.`
-              : `${this.promptContent} ${this.newsHeadline}`,
+              ? `${this.promptContentWithTicker} ${ticker} , news headline: ${newsHeadline}.`
+              : `${this.promptContent} ${newsHeadline}`,
           },
         ],
         model: 'gpt-4-1106-preview',
       });
       ticker
         ? console.log(
-            `${this.promptContentWithTicker} ${ticker} , news headline: ${this.newsHeadline}.`,
+            `${this.promptContentWithTicker} ${ticker} , news headline: ${newsHeadline}.`,
           )
-        : console.log(`${this.promptContent} ${this.newsHeadline}`);
+        : console.log(`${this.promptContent} ${newsHeadline}`);
       return completion.choices[0].message.content;
     } catch (err) {
       console.error('Error getting chatgpt response: ', err);

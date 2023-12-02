@@ -172,7 +172,7 @@ class AccountInfo {
           expiresIn: process.env.JWT_EXPIRE,
         });
         res.json({ token });
-        appEmit.emit('userLogin', {
+        appEmit.emit('authRequest', {
           apiKey: user.apikey,
           apiSecret: user.apisecret,
         });
