@@ -132,6 +132,7 @@ class BybitTrading extends BybitClient {
 
   public async getAllOpenPosition(): Promise<PositionV5[]> {
     try {
+      // console.log('allposition: ', this.client);
       const response = await this.client.getPositionInfo({
         category: this.category,
         settleCoin: 'USDT',

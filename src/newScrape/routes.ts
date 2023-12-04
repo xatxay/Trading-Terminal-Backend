@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Decoded, Wallet } from '../interface.js';
+import { Decoded } from '../interface.js';
 import BybitTrading from './bybit.js';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -20,19 +20,15 @@ import {
   updateOpenAi,
   checkUserSubmitOpenAiApi,
   selectApiWithId,
-  selectOpenAiWithId,
+  // selectOpenAiWithId,
 } from '../login/userDatabase.js';
-import BybitClient from './bybitClient.js';
-import { OpenAiClient } from './chatgpt.js';
+// import BybitClient from './bybitClient.js';
+// import { OpenAiClient } from './chatgpt.js';
 
 class AccountInfo {
-  private bybitAccount: Wallet = new BybitTrading('');
-  private bybitClient = new BybitClient();
-  private openAiUpdate = new OpenAiClient();
-
-  // constructor() {
-  //   this.bybitAccount = new BybitTrading('');
-  // }
+  // private bybitClient = new BybitClient();
+  private bybitAccount = new BybitTrading('');
+  // private openAiUpdate = new OpenAiClient();
 
   public authenticateToken(
     req: Request,
@@ -51,6 +47,7 @@ class AccountInfo {
       const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
       console.log('decoded: ', decoded);
       req.user = decoded as Decoded;
+      appEmit.emit('authRequest', decoded);
       next();
     } catch (err) {
       res.status(401).json({ message: 'Invalid Token' });
@@ -66,6 +63,7 @@ class AccountInfo {
       res.json(data);
     } catch (err) {
       res.status(500).send(err.message);
+      console.error('Erro handling account summary: ', err);
     }
   }
 
@@ -275,9 +273,9 @@ class AccountInfo {
       if (!req.user) return;
       const userId = req.user.userId;
       console.log('userid: ', userId);
-      const api = await selectApiWithId(userId);
-      console.log('id api response: ', api);
-      this.bybitClient.updateApi(api.apikey, api.apisecret);
+      const response = await selectApiWithId(userId);
+      // console.log('id api response: ', response);
+      this.bybitAccount.updateApi(response.apikey, response.apisecret);
       next();
     } catch (err) {
       res.status(500).json({ message: err });
@@ -285,32 +283,15 @@ class AccountInfo {
     }
   }
 
-  public async openAiInit(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
-    try {
-      if (!req.user) return;
-      const userId = req.user.userId;
-      const openAiApi = await selectOpenAiWithId(userId);
-      this.openAiUpdate.updateOpenAiApi(openAiApi);
-      next();
-    } catch (err) {
-      res.status(500).json({ message: err });
-      console.error('Error updating openai api: ', err);
-    }
-  }
-
   // public submitPositionSize() {
-  //   return async (req: Request, res: Response): Promise<void> => {
+  //
   //     try {
   //       const { email, firstPositionSize, secondPositionSize } = req.body;
   //     } catch (err) {
   //       res.status(500).json({ message: 'Error submitting position size' });
   //       console.error('Failed submitting position size: ', err);
   //     }
-  //   };
+  //
   // }
 }
 
