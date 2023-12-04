@@ -22,17 +22,17 @@ class BybitTrading extends BybitClient {
   private orderType: OrderTypeV5 = 'Market';
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
-  private symbol: string;
+  // private symbol: string;
   private leverage: string = '10';
   private price: string | number;
   private inPosition: number;
   private tp: string;
   private sl: string;
-  // private client: RestClientV5;
+  // private bybitClient: BybitClient;
 
   // private openPosition: unknown;
 
-  constructor(symbol: string) {
+  constructor() {
     super();
     // this.client = new RestClientV5({
     //   key: process.env.BYBITAPIKEY,
@@ -40,17 +40,18 @@ class BybitTrading extends BybitClient {
     //   secret: process.env.BYBITSECRET,
     //   enable_time_sync: true,
     // });
-    this.symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
+    // this.bybitClient = bybitClient;
+    // symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
   }
 
-  private async getAssetPrice(): Promise<number> {
+  private async getAssetPrice(symbol: string): Promise<number> {
     try {
       const response = await this.client.getTickers({
         category: this.category,
-        symbol: this.symbol,
+        symbol: symbol,
       });
       const price = Number(response.result.list[0].lastPrice);
-      console.log(`${this.symbol} last price: ${price}`);
+      console.log(`${symbol} last price: ${price}`);
       return price;
     } catch (err) {
       console.error('Failed getting asset price: ', err);
@@ -80,9 +81,12 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  public async calculatePositionSize(percentage: number): Promise<string> {
+  public async calculatePositionSize(
+    symbol: string,
+    percentage: number,
+  ): Promise<string> {
     try {
-      const assetPrice = await this.getAssetPrice();
+      const assetPrice = await this.getAssetPrice(symbol);
       const { totalAvailableBalance } = await this.getWalletBalance();
       const positionSizeNumber =
         (totalAvailableBalance * Number(this.leverage) * percentage) /
@@ -99,11 +103,11 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  private async setLeverage(): Promise<void> {
+  private async setLeverage(symbol: string): Promise<void> {
     try {
       const response = await this.client.setLeverage({
         category: 'linear',
-        symbol: this.symbol,
+        symbol: symbol,
         buyLeverage: this.leverage,
         sellLeverage: this.leverage,
       });
@@ -115,11 +119,11 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  public async isInPosition(): Promise<number> {
+  public async isInPosition(symbol: string): Promise<number> {
     try {
       const response = await this.client.getPositionInfo({
         category: this.category,
-        symbol: this.symbol, //change this when use!!!@@@@
+        symbol: symbol, //change this when use!!!@@@@
       });
       console.log('openorder: ', response.result.list);
       // console.log('OPEN ORDER: ', response.result.list.length);
@@ -145,11 +149,11 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  public async getSpecificPosition(): Promise<SpecificCoin> {
+  public async getSpecificPosition(symbol: string): Promise<SpecificCoin> {
     try {
       const response = await this.client.getPositionInfo({
         category: this.category,
-        symbol: this.symbol,
+        symbol: symbol,
       });
       console.log('specific coin: ', response.result.list);
       const data = {
@@ -180,15 +184,17 @@ class BybitTrading extends BybitClient {
   // }
 
   public async getTradeResult(
+    symbol: string,
     time: number,
   ): Promise<
     APIResponseV3WithTime<CategoryCursorListV5<ClosedPnLV5[], CategoryV5>>
   > {
     try {
-      console.log('thissss: ', this.symbol, '|', time);
+      console.log('thissss: ', symbol, '|', time);
+      console.log('gettradeclient: ', this.client);
       const response = await this.client.getClosedPnL({
         category: this.category,
-        symbol: this.symbol,
+        symbol: symbol,
         startTime: time,
         limit: 1,
       });
@@ -200,12 +206,16 @@ class BybitTrading extends BybitClient {
     }
   }
 
-  public async closeOrder(side: string, size?: string): Promise<ResponseBybit> {
+  public async closeOrder(
+    symbol: string,
+    side: string,
+    size?: string,
+  ): Promise<ResponseBybit> {
     const sideDirection = side === 'Buy' ? 'Sell' : 'Buy';
     try {
       const response = await this.client.submitOrder({
         category: this.category,
-        symbol: this.symbol,
+        symbol: symbol,
         side: sideDirection,
         orderType: 'Market',
         qty: size ? (+size / 2).toString() : '0',
@@ -213,7 +223,7 @@ class BybitTrading extends BybitClient {
         timeInForce: this.timeInForce,
       });
       console.log('Close order response: ', response);
-      this.getTradeResult(response.time);
+      this.getTradeResult(symbol, response.time);
       return response;
     } catch (err) {
       console.error('Error closing order: ', err);
@@ -236,6 +246,7 @@ class BybitTrading extends BybitClient {
   }
 
   public async submitOrder(
+    symbol: string,
     side: string,
     percentage: number,
     chatgpt: boolean,
@@ -243,17 +254,17 @@ class BybitTrading extends BybitClient {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
-      const checkInstrument = await this.getInstrumentInfo(this.symbol);
+      const checkInstrument = await this.getInstrumentInfo(symbol);
       if (checkInstrument !== 0) return null;
 
-      await this.setLeverage();
-      this.quantity = await this.calculatePositionSize(percentage);
+      await this.setLeverage(symbol);
+      this.quantity = await this.calculatePositionSize(symbol, percentage);
 
       if (chatgpt) {
-        this.inPosition = await this.isInPosition();
+        this.inPosition = await this.isInPosition(symbol);
         console.log('this.inposition: ', this.inPosition);
         if (this.inPosition && this.inPosition !== 0) return null;
-        this.price = await this.getAssetPrice();
+        this.price = await this.getAssetPrice(symbol);
         if (side === 'Buy') {
           this.tp = (this.price * 0.005 + this.price).toString();
           this.sl = (this.price - this.price * 0.02).toString();
@@ -265,7 +276,7 @@ class BybitTrading extends BybitClient {
 
       const response = await this.client.submitOrder({
         category: this.category,
-        symbol: this.symbol,
+        symbol: symbol,
         side: direction,
         orderType: this.orderType,
         qty: this.quantity,

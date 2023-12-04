@@ -7,12 +7,15 @@ import {
 import { V5WsData } from '../interface.js';
 // import BybitClient from './bybitClient.js';
 import FrontEndWebsocket from './sendFrontEndData.js';
-import { WebsocketClient } from 'bybit-api';
-import EventEmitter from 'events';
+// import { WebsocketClient } from 'bybit-api';
+// import EventEmitter from 'events';
+import BybitClient from './bybitClient.js';
+import { WS_KEY_MAP } from 'bybit-api';
 
-class BybitPrice extends EventEmitter {
-  private wsClient: WebsocketClient;
+class BybitPrice extends BybitClient {
+  // private wsClient: WebsocketClient;
   private dataFrontEnd: FrontEndWebsocket;
+  private wsInitialized: boolean = false;
 
   constructor() {
     super();
@@ -22,11 +25,12 @@ class BybitPrice extends EventEmitter {
     //   market: 'v5',
     // });
     this.dataFrontEnd = new FrontEndWebsocket();
-    this.initializeWebsocket();
-    this.subscribePositions();
+    // this.initializeWebsocket();
+    // this.subscribePositions();
   }
 
-  private initializeWebsocket(): void {
+  public initializeWebsocket(): void {
+    console.log('initing....');
     this.wsClient.on('update', async (data: V5WsData) => {
       if (data.topic === 'position' && !data.data[0].side) {
         const positionResult = {
@@ -62,16 +66,30 @@ class BybitPrice extends EventEmitter {
     this.wsClient.on('response', (data) => {
       console.log('Log response: ', JSON.stringify(data, null, 2));
     });
-
-    // const activePublicLinearTopics = this.wsClient
-    //   .getWsStore()
-    //   .getTopics(WS_KEY_MAP.v5LinearPublic);
-    // console.log('Active public linear topic: ', activePublicLinearTopics);
+    this.wsInitialized = true;
   }
 
-  private subscribePositions(): void {
+  public isWsInitialized(): boolean {
+    // console.log('isFunction: ', this.wsInitialized);
+    return this.wsInitialized;
+  }
+
+  private checkSubscribeTopics(): void {
+    const activePublicLinearTopics = this.wsClient
+      .getWsStore()
+      .getTopics(WS_KEY_MAP.v5LinearPublic);
+    console.log('Active public linear topic: ', activePublicLinearTopics);
+    const activeSubscribeTopic = this.wsClient
+      .getWsStore()
+      .getTopics(WS_KEY_MAP.v5Private);
+    console.log('active subscribe ws v5 topic: ', activeSubscribeTopic);
+  }
+
+  public subscribePositions(): void {
     try {
+      console.log('subscribing...', this.wsInitialized);
       this.wsClient.subscribeV5('position', 'linear');
+      this.checkSubscribeTopics();
     } catch (err) {
       console.error('Error subscribing to positions: ', err);
     }

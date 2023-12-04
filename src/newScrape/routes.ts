@@ -22,12 +22,16 @@ import {
   selectApiWithId,
   // selectOpenAiWithId,
 } from '../login/userDatabase.js';
+import { BybitPrice } from './getPrice.js';
+// import BybitClient from './bybitClient.js';
 // import BybitClient from './bybitClient.js';
 // import { OpenAiClient } from './chatgpt.js';
 
+export const bybitAccount = new BybitTrading();
+
 class AccountInfo {
-  // private bybitClient = new BybitClient();
-  private bybitAccount = new BybitTrading('');
+  // private bybitClient = BybitClient.getInstance();
+  private bybitWsClient = new BybitPrice();
   // private openAiUpdate = new OpenAiClient();
 
   public authenticateToken(
@@ -59,7 +63,7 @@ class AccountInfo {
     res: Response,
   ): Promise<void> {
     try {
-      const data = await this.bybitAccount.getWalletBalance();
+      const data = await bybitAccount.getWalletBalance();
       res.json(data);
     } catch (err) {
       res.status(500).send(err.message);
@@ -72,7 +76,7 @@ class AccountInfo {
     res: Response,
   ): Promise<void> {
     try {
-      const data = await this.bybitAccount.getAllOpenPosition();
+      const data = await bybitAccount.getAllOpenPosition();
       res.json(data);
     } catch (err) {
       res.status(500).send(err.message);
@@ -272,10 +276,15 @@ class AccountInfo {
     try {
       if (!req.user) return;
       const userId = req.user.userId;
-      console.log('userid: ', userId);
+      // console.log('userid: ', userId);
       const response = await selectApiWithId(userId);
       // console.log('id api response: ', response);
-      this.bybitAccount.updateApi(response.apikey, response.apisecret);
+      bybitAccount.updateApi(response.apikey, response.apisecret);
+      this.bybitWsClient.updateWsApi(response.apikey, response.apisecret);
+      if (!this.bybitWsClient.isWsInitialized()) {
+        this.bybitWsClient.initializeWebsocket();
+        this.bybitWsClient.subscribePositions();
+      }
       next();
     } catch (err) {
       res.status(500).json({ message: err });

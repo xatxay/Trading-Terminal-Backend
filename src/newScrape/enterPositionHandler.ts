@@ -15,8 +15,10 @@ import {
 } from '../tradeData/tradeAnalyzeUtils.js';
 import { OpenAiAnalyze } from './chatgpt.js';
 import { PriceData } from '../interface.js';
-import BybitTrading from './bybit.js';
+// import BybitTrading from './bybit.js';
 import { BybitPrice } from './getPrice.js';
+import { bybitAccount } from './routes.js';
+// import BybitClient from './bybitClient.js';
 
 const handleEnterPosition = async (): Promise<void> => {
   console.log('handle enter position');
@@ -80,10 +82,12 @@ const handleEnterPosition = async (): Promise<void> => {
               0.001,
               true,
             );
-            const getEntryPrice = new BybitTrading(tickerAndSentiment.ticker);
-            const coinData = await getEntryPrice.getSpecificPosition();
+            // const bybitClient = BybitClient.getInstance();
+            const coinData = await bybitAccount.getSpecificPosition(
+              tickerAndSentiment.ticker,
+            );
             if (+data.price >= +coinData.entryPrice * 5) {
-              await getEntryPrice.closeOrder(side, coinData.size);
+              await bybitAccount.closeOrder(side, coinData.size);
             }
             await insertTradeData(
               messageObj._id,

@@ -10,7 +10,7 @@ import {
 import { TickerAndSentiment } from '../interface.js';
 // import { AccountInfo } from './routes.js';
 // import { Express } from 'express';
-import BybitTrading from './bybit.js';
+// import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
@@ -18,6 +18,8 @@ import EventEmitter from 'events';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import handleEnterPosition from './enterPositionHandler.js';
+import { bybitAccount } from './routes.js';
+// import BybitClient from './bybitClient.js';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -176,8 +178,8 @@ const closeButton = async (
   side: string,
 ): Promise<ResponseBybit> => {
   try {
-    const bybitOrder = new BybitTrading(symbol);
-    const response = await bybitOrder.closeOrder(side);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.closeOrder(symbol, side);
     console.log('close button clicked');
     return response;
   } catch (err) {
@@ -192,8 +194,8 @@ const chatgptClosePositionData = async (
 ): Promise<void> => {
   try {
     console.log('casdasd: ', symbol, '|', time);
-    const bybitOrder = new BybitTrading(symbol);
-    const response = await bybitOrder.getTradeResult(time);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.getTradeResult(symbol, time);
     const tradeResult = {
       symbol: response.result.list[0].symbol,
       entryPrice: response.result.list[0].avgEntryPrice,
@@ -233,8 +235,13 @@ const submitNewsOrder = async (
   try {
     if (symbol === 'N/A') return null;
     console.log('75: ', symbol, side, positionSize);
-    const bybitSubmit = new BybitTrading(symbol);
-    const response = await bybitSubmit.submitOrder(side, 0.001, chatgpt); //change position size later
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.submitOrder(
+      symbol,
+      side,
+      0.001,
+      chatgpt,
+    ); //change position size later
     return response;
   } catch (err) {
     console.log('Error submitting news orders: ', err);
@@ -247,8 +254,8 @@ const subscribeKline = async (
   ticker: string,
 ): Promise<void> => {
   try {
-    const instrument = new BybitTrading('');
-    const response = await instrument.getInstrumentInfo(`${ticker}USDT`);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.getInstrumentInfo(`${ticker}USDT`);
     const klineTicker = `kline.3.${ticker}USDT`;
     const activePublicLinearTopics = wsClient
       .getWsStore()
