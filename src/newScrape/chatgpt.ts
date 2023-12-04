@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 
-class OpenAiClient {
+abstract class OpenAiClient {
   protected openai: OpenAI;
 
   public updateOpenAiApi(apiKey: string): void {
@@ -13,9 +13,7 @@ class OpenAiClient {
 }
 
 class OpenAiAnalyze extends OpenAiClient {
-  // private openai: OpenAI;
   private promptContent: string;
-  // private newsHeadline: string;
   private systemContent: string;
   private promptContentWithTicker: string;
 
@@ -23,7 +21,6 @@ class OpenAiAnalyze extends OpenAiClient {
     super();
     this.promptContent = process.env.CONTENT;
     this.promptContentWithTicker = process.env.CONTENTWITHTICKER;
-    // this.openai = new OpenAI({ apiKey: apiKey });
     this.systemContent = process.env.SYSTEMCONTENT;
   }
 

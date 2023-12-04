@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { PriceData } from '../interface.js';
+import { PriceData, TerminalLog } from '../interface.js';
 
 class FrontEndWebsocket {
   private ws: WebSocket.Server;
@@ -22,7 +22,7 @@ class FrontEndWebsocket {
     });
   }
 
-  public sendWebsocketData(data: PriceData): void {
+  public sendWebsocketData(data: PriceData | TerminalLog): void {
     this.ws.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         try {

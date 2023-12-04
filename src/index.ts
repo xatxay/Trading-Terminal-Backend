@@ -10,7 +10,6 @@ import {
 // import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-import TreeNews from './newScrape/treeNews.js';
 // import { extractString } from './newScrape/utils.js';
 import dotenv from 'dotenv';
 // import { updateApi } from './login/userDatabase.js';
@@ -20,8 +19,6 @@ dotenv.config();
 
 const main = async (): Promise<void> => {
   const allProxies: Proxy[] = convertProxiesToString();
-  const treeNews = new TreeNews(process.env.TREENEWS);
-  treeNews.startPing();
 
   // TODO: remove create database scripts (done)
   // TODO: refactor database scripts into node scripts to run on ec2 machines (done)

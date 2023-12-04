@@ -6,6 +6,7 @@ import {
   TreeNewsMessage,
   SubmitOrder,
   Signature,
+  TerminalLog,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
 // import { AccountInfo } from './routes.js';
@@ -14,13 +15,10 @@ import { TickerAndSentiment } from '../interface.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
 import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
-import EventEmitter from 'events';
 import * as crypto from 'crypto';
 import axios from 'axios';
-import handleEnterPosition from './enterPositionHandler.js';
-import { bybitAccount } from './routes.js';
-// import BybitClient from './bybitClient.js';
-// import { selectUser } from '../login/createUser.js';
+import { bybitAccount } from './classInstance.js';
+import { startChatgptMode, stopChatgptMode } from './enterPositionHandler.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
@@ -129,8 +127,6 @@ const formatNewsText = (newsText: string): string => {
   }
 };
 
-export const appEmit = new EventEmitter();
-
 // const treeWebsocket = (): TreeNews => {
 //   try {
 //     const treeNews = new TreeNews(process.env.TREENEWS);
@@ -162,11 +158,12 @@ export const appEmit = new EventEmitter();
 
 const startButton = async (): Promise<void> => {
   console.log('started button clicked');
-  await handleEnterPosition();
+  startChatgptMode();
 };
 
 const stopButton = (): void => {
   console.log('stop button clicked');
+  stopChatgptMode();
 };
 
 const closeAllButton = (): void => {
@@ -411,6 +408,15 @@ const validateBybitApi = async ({
   }
 };
 
+const sendLogMessage = (message: string): TerminalLog => {
+  const logMessage = {
+    type: 'log',
+    message: message,
+    timeStamp: getTimeStamp(),
+  };
+  return logMessage;
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -437,4 +443,5 @@ export {
   checkPartials,
   formatNewsText,
   validateBybitApi,
+  sendLogMessage,
 };

@@ -1,7 +1,5 @@
-import WebSocket from 'ws';
-import { appEmit } from './utils.js';
+import { sendLogMessage } from './utils.js';
 import {
-  extractNewsWsData,
   extractString,
   formatNewsText,
   getTimeStamp,
@@ -13,104 +11,142 @@ import {
   insertNewsHeadline,
   insertTradeData,
 } from '../tradeData/tradeAnalyzeUtils.js';
-import { OpenAiAnalyze } from './chatgpt.js';
-import { PriceData } from '../interface.js';
+// import { OpenAiAnalyze } from './chatgpt.js';
+import { PriceData, TreeNewsMessage } from '../interface.js';
 // import BybitTrading from './bybit.js';
-import { BybitPrice } from './getPrice.js';
-import { bybitAccount } from './routes.js';
-// import BybitClient from './bybitClient.js';
+import {
+  bybitAccount,
+  bybitWsClient,
+  dataFrontEnd,
+  openAiClass,
+} from './classInstance.js';
+import TreeNews from './treeNews.js';
+import { appEmit } from './treeNews.js';
 
-const handleEnterPosition = async (): Promise<void> => {
-  console.log('handle enter position');
-  const bybitPercentage = new BybitPrice();
-  const tickerSubscribe: string[] = [];
-  const analyzer = new OpenAiAnalyze();
-  appEmit.on('treeEmit', async (data: WebSocket.RawData) => {
-    const messageObj = extractNewsWsData(data);
+const treeNews = new TreeNews(process.env.TREENEWS);
+treeNews.startPing();
+const tickerSubscribe: string[] = [];
+let startChatgpt = false;
 
-    if (messageObj.suggestions) {
-      handleSubscribeList(bybitPercentage, messageObj, tickerSubscribe);
-    }
+appEmit.on('treeEmit', async (messageObj: TreeNewsMessage) => {
+  console.log('treeemit: ', messageObj);
+  console.log('current mode: ', startChatgpt);
+  if (!startChatgpt) return;
 
-    const wsTimeStamp = getTimeStamp(messageObj.time);
+  if (messageObj.suggestions) {
+    handleSubscribeList(bybitWsClient, messageObj, tickerSubscribe);
+  }
 
-    const response = await analyzer.callOpenAi(
-      messageObj.newsHeadline,
-      messageObj.suggestions,
-    );
+  const wsTimeStamp = getTimeStamp(messageObj.time);
 
-    const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
+  const chatGptResponse = await openAiClass.callOpenAi(
+    messageObj.newsHeadline,
+    messageObj.suggestions,
+  );
 
-    await insertNewsHeadline(
-      messageObj._id,
-      messageObj.title,
-      formattedNewsHeadline,
-      messageObj.url,
-      messageObj.link,
-      wsTimeStamp,
-      messageObj.suggestions,
-      messageObj.body,
-    );
+  const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
 
-    console.log('subscribeset: ', tickerSubscribe);
-    console.log('newswsdata: ', messageObj);
+  await insertNewsHeadline(
+    messageObj._id,
+    messageObj.title,
+    formattedNewsHeadline,
+    messageObj.url,
+    messageObj.link,
+    wsTimeStamp,
+    messageObj.suggestions,
+    messageObj.body,
+  );
 
-    if (response) {
-      const result = extractString(response);
-      console.log('gpt result: ', result);
-      const gptTimeStamp = getTimeStamp();
-      for (const tickerAndSentiment of result) {
-        const side =
-          tickerAndSentiment.sentiment >= 70
-            ? 'Buy'
-            : tickerAndSentiment.sentiment <= 70
-            ? 'Sell'
-            : '';
-        bybitPercentage.once('percentage', async (data: PriceData) => {
-          if (
-            (tickerAndSentiment.ticker === data.ticker &&
-              tickerAndSentiment.sentiment >= 70 &&
-              data.percentage < 2) ||
-            (tickerAndSentiment.ticker === data.ticker &&
-              tickerAndSentiment.sentiment <= 70 &&
-              data.percentage < 2)
-          ) {
-            console.log('submitting...________________');
-            const response = await submitNewsOrder(
-              tickerAndSentiment.ticker,
-              side,
-              0.001,
-              true,
-            );
-            // const bybitClient = BybitClient.getInstance();
-            const coinData = await bybitAccount.getSpecificPosition(
-              tickerAndSentiment.ticker,
-            );
-            if (+data.price >= +coinData.entryPrice * 5) {
-              await bybitAccount.closeOrder(side, coinData.size);
-            }
-            await insertTradeData(
-              messageObj._id,
-              response.time,
-              tickerAndSentiment.ticker,
-              side,
-              '-',
-              '-',
-              '-',
-              '-',
-            );
+  console.log('subscribeset: ', tickerSubscribe);
+  console.log('newswsdata: ', messageObj);
+
+  if (chatGptResponse) {
+    const logMessage = {
+      gptTextResponse: `Chatgpt response: ${chatGptResponse}`,
+      submitting: `Submitting...`,
+      orderSubmitted: '',
+      closePartial: '',
+    };
+    const gptLogResponse = sendLogMessage(logMessage.gptTextResponse);
+    dataFrontEnd.sendWebsocketData(gptLogResponse);
+    const result = extractString(chatGptResponse);
+    console.log('gpt result: ', result);
+    const gptTimeStamp = getTimeStamp();
+    for (const tickerAndSentiment of result) {
+      const side =
+        tickerAndSentiment.sentiment >= 70
+          ? 'Buy'
+          : tickerAndSentiment.sentiment <= 70
+          ? 'Sell'
+          : '';
+      bybitWsClient.once('percentage', async (data: PriceData) => {
+        if (
+          (tickerAndSentiment.ticker === data.ticker &&
+            tickerAndSentiment.sentiment >= 70 &&
+            data.percentage < 2) ||
+          (tickerAndSentiment.ticker === data.ticker &&
+            tickerAndSentiment.sentiment <= 70 &&
+            data.percentage < 2)
+        ) {
+          console.log(logMessage.submitting);
+          const submitting = sendLogMessage(logMessage.submitting);
+          dataFrontEnd.sendWebsocketData(submitting);
+          const submitOrderResponse = await submitNewsOrder(
+            tickerAndSentiment.ticker,
+            side,
+            0.001,
+            true,
+          );
+          if (submitOrderResponse) {
+            logMessage.orderSubmitted = `Order Submitted: ${submitOrderResponse}`;
+            console.log(logMessage.orderSubmitted);
+            const orderSubmitted = sendLogMessage(logMessage.orderSubmitted);
+            dataFrontEnd.sendWebsocketData(orderSubmitted);
           }
-        });
-        await insertChatGptSentiment(
-          messageObj._id,
-          gptTimeStamp,
-          tickerAndSentiment.ticker,
-          tickerAndSentiment.sentiment,
-        );
-      }
+          // const bybitClient = BybitClient.getInstance();
+          const coinData = await bybitAccount.getSpecificPosition(
+            tickerAndSentiment.ticker,
+          );
+          if (+data.price >= +coinData.entryPrice * 5) {
+            const closeOrderResponse = await bybitAccount.closeOrder(
+              side,
+              coinData.size,
+            );
+            logMessage.closePartial = `Closed half: ${closeOrderResponse}`;
+            console.log(logMessage.closePartial);
+            const closePartialLog = sendLogMessage(logMessage.closePartial);
+            dataFrontEnd.sendWebsocketData(closePartialLog);
+          }
+          await insertTradeData(
+            messageObj._id,
+            submitOrderResponse.time,
+            tickerAndSentiment.ticker,
+            side,
+            '-',
+            '-',
+            '-',
+            '-',
+          );
+        }
+      });
+      await insertChatGptSentiment(
+        messageObj._id,
+        gptTimeStamp,
+        tickerAndSentiment.ticker,
+        tickerAndSentiment.sentiment,
+      );
     }
-    console.log('Chatgpt response: ', response);
-  });
+  }
+  console.log('Chatgpt response: ', chatGptResponse);
+});
+
+const startChatgptMode = (): void => {
+  startChatgpt = true;
+  console.log('start chatgpt mode: ', startChatgpt);
 };
 
-export default handleEnterPosition;
+const stopChatgptMode = (): void => {
+  startChatgpt = false;
+  console.log('stop chatgpt mode: ', startChatgpt);
+};
+export { startChatgptMode, stopChatgptMode };

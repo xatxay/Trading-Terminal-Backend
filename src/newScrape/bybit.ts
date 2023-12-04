@@ -254,17 +254,25 @@ class BybitTrading extends BybitClient {
     const orderLinkId = crypto.randomBytes(16).toString('hex');
     const direction = side === 'Buy' ? 'Buy' : 'Sell';
     try {
-      const checkInstrument = await this.getInstrumentInfo(symbol);
+      const ticker =
+        symbol === 'SHIBUSDT'
+          ? 'SHIB1000USDT'
+          : symbol === 'PEPEUSDT'
+          ? '1000PEPEUSDT'
+          : symbol === 'FLOKIUSDT'
+          ? '1000FLOKIUSDT'
+          : symbol;
+      const checkInstrument = await this.getInstrumentInfo(ticker);
       if (checkInstrument !== 0) return null;
 
-      await this.setLeverage(symbol);
-      this.quantity = await this.calculatePositionSize(symbol, percentage);
+      await this.setLeverage(ticker);
+      this.quantity = await this.calculatePositionSize(ticker, percentage);
 
       if (chatgpt) {
-        this.inPosition = await this.isInPosition(symbol);
+        this.inPosition = await this.isInPosition(ticker);
         console.log('this.inposition: ', this.inPosition);
         if (this.inPosition && this.inPosition !== 0) return null;
-        this.price = await this.getAssetPrice(symbol);
+        this.price = await this.getAssetPrice(ticker);
         if (side === 'Buy') {
           this.tp = (this.price * 0.005 + this.price).toString();
           this.sl = (this.price - this.price * 0.02).toString();
@@ -276,7 +284,7 @@ class BybitTrading extends BybitClient {
 
       const response = await this.client.submitOrder({
         category: this.category,
-        symbol: symbol,
+        symbol: ticker,
         side: direction,
         orderType: this.orderType,
         qty: this.quantity,

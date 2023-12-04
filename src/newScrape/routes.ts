@@ -1,15 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { Decoded } from '../interface.js';
-import BybitTrading from './bybit.js';
 import bcrypt from 'bcryptjs';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import {
-  appEmit,
   closeAllButton,
   closeButton,
   startButton,
   stopButton,
   submitNewsOrder,
+  validateBybitApi,
 } from './utils.js';
 import { selectUser } from '../tradeData/tradeAnalyzeUtils.js';
 import {
@@ -20,18 +19,12 @@ import {
   updateOpenAi,
   checkUserSubmitOpenAiApi,
   selectApiWithId,
-  // selectOpenAiWithId,
+  selectOpenAiWithId,
 } from '../login/userDatabase.js';
-import { BybitPrice } from './getPrice.js';
-// import BybitClient from './bybitClient.js';
-// import BybitClient from './bybitClient.js';
-// import { OpenAiClient } from './chatgpt.js';
-
-export const bybitAccount = new BybitTrading();
+import { bybitAccount, bybitWsClient, openAiClass } from './classInstance.js';
 
 class AccountInfo {
   // private bybitClient = BybitClient.getInstance();
-  private bybitWsClient = new BybitPrice();
   // private openAiUpdate = new OpenAiClient();
 
   public authenticateToken(
@@ -51,7 +44,6 @@ class AccountInfo {
       const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
       console.log('decoded: ', decoded);
       req.user = decoded as Decoded;
-      appEmit.emit('authRequest', decoded);
       next();
     } catch (err) {
       res.status(401).json({ message: 'Invalid Token' });
@@ -85,7 +77,7 @@ class AccountInfo {
 
   public async startButtonHandler(req: Request, res: Response): Promise<void> {
     try {
-      startButton(); //log for now
+      startButton();
       res.send({ message: 'starting...' });
       console.log('req: ', req.user);
     } catch (err) {
@@ -171,10 +163,6 @@ class AccountInfo {
         expiresIn: process.env.JWT_EXPIRE,
       });
       res.json({ token });
-      appEmit.emit('authRequest', {
-        apiKey: user.apikey,
-        apiSecret: user.apisecret,
-      });
     } catch (err) {
       res.status(500).send('Server Error');
     }
@@ -203,13 +191,16 @@ class AccountInfo {
     try {
       const { email, apiKey, apiSecret } = req.body;
       console.log('api handler: ', email, apiKey, apiSecret);
+      const validateResponse = await validateBybitApi({ apiKey, apiSecret });
+      if (validateResponse.retCode !== 0) {
+        res.status(400).json({ message: validateResponse.retMsg });
+      }
       const response = await updateApi(email, apiKey, apiSecret);
       if (response === 0) {
         res.status(400).json({ message: 'Error saving api keys' });
       } else {
         res.status(201).json({ message: 'Updated api successful!' });
       }
-      appEmit.emit('bybitApi', { email, apiKey, apiSecret });
     } catch (err) {
       res.status(500).json({ message: 'Error saving api key: ', err });
       console.error('Error submitting api key: ', err);
@@ -278,12 +269,13 @@ class AccountInfo {
       const userId = req.user.userId;
       // console.log('userid: ', userId);
       const response = await selectApiWithId(userId);
-      // console.log('id api response: ', response);
+      const openAiApi = await selectOpenAiWithId(userId);
+      openAiClass.updateOpenAiApi(openAiApi);
       bybitAccount.updateApi(response.apikey, response.apisecret);
-      this.bybitWsClient.updateWsApi(response.apikey, response.apisecret);
-      if (!this.bybitWsClient.isWsInitialized()) {
-        this.bybitWsClient.initializeWebsocket();
-        this.bybitWsClient.subscribePositions();
+      bybitWsClient.updateWsApi(response.apikey, response.apisecret);
+      if (!bybitWsClient.isWsInitialized()) {
+        bybitWsClient.initializeWebsocket();
+        bybitWsClient.subscribePositions();
       }
       next();
     } catch (err) {

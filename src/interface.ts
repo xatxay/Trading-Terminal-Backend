@@ -162,6 +162,12 @@ export interface PriceData {
   price: string;
 }
 
+export interface TerminalLog {
+  type: string;
+  message: string;
+  timeStamp: string;
+}
+
 export interface BothData {
   news: TreeNewsMessage;
   price: PriceData[];
