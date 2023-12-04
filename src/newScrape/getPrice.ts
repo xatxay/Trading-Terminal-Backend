@@ -1,4 +1,3 @@
-import FrontEndWebsocket from './sendFrontEndData.js';
 import {
   chatgptClosePositionData,
   extractPriceData,
@@ -6,17 +5,28 @@ import {
   unSubscribeKline,
 } from './utils.js';
 import { V5WsData } from '../interface.js';
-import BybitClient from './bybitClient.js';
+// import BybitClient from './bybitClient.js';
+import FrontEndWebsocket from './sendFrontEndData.js';
+import { WebsocketClient } from 'bybit-api';
+import EventEmitter from 'events';
 
-class BybitPrice extends BybitClient {
+class BybitPrice extends EventEmitter {
+  private wsClient: WebsocketClient;
+  private dataFrontEnd: FrontEndWebsocket;
+
   constructor() {
     super();
+    // this.wsClient = new WebsocketClient({
+    //   key: process.env.BYBITAPIKEY,
+    //   secret: process.env.BYBITSECRET,
+    //   market: 'v5',
+    // });
+    this.dataFrontEnd = new FrontEndWebsocket();
     this.initializeWebsocket();
     this.subscribePositions();
   }
 
   private initializeWebsocket(): void {
-    if (!this.wsClient) return;
     this.wsClient.on('update', async (data: V5WsData) => {
       if (data.topic === 'position' && !data.data[0].side) {
         const positionResult = {
@@ -31,8 +41,7 @@ class BybitPrice extends BybitClient {
       } else if (data.wsKey === 'v5LinearPublic') {
         const priceData = extractPriceData(data);
 
-        const frontEndData = new FrontEndWebsocket();
-        frontEndData.sendWebsocketData(priceData);
+        this.dataFrontEnd.sendWebsocketData(priceData);
         this.emit('percentage', priceData);
         console.log('Price update: ', priceData);
       }
@@ -53,11 +62,15 @@ class BybitPrice extends BybitClient {
     this.wsClient.on('response', (data) => {
       console.log('Log response: ', JSON.stringify(data, null, 2));
     });
+
+    // const activePublicLinearTopics = this.wsClient
+    //   .getWsStore()
+    //   .getTopics(WS_KEY_MAP.v5LinearPublic);
+    // console.log('Active public linear topic: ', activePublicLinearTopics);
   }
 
   private subscribePositions(): void {
     try {
-      if (!this.wsClient) return;
       this.wsClient.subscribeV5('position', 'linear');
     } catch (err) {
       console.error('Error subscribing to positions: ', err);

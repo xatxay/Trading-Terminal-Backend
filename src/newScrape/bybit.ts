@@ -7,6 +7,7 @@ import {
   CategoryCursorListV5,
   ClosedPnLV5,
   PositionV5,
+  // RestClientV5,
 } from 'bybit-api';
 import {
   AccountSummary,
@@ -27,22 +28,19 @@ class BybitTrading extends BybitClient {
   private inPosition: number;
   private tp: string;
   private sl: string;
+  // private client: RestClientV5;
 
   // private openPosition: unknown;
 
   constructor(symbol: string) {
     super();
     // this.client = new RestClientV5({
-    // key: process.env.BYBITAPIKEY,
-    // // TODO: instead of only using process.env.BYBITSECRET, store other user secrets in db and dynamically query db for secret depending on the connected user
-    // secret: process.env.BYBITSECRET,
-    // enable_time_sync: true,
+    //   key: process.env.BYBITAPIKEY,
+    //   // TODO: instead of only using process.env.BYBITSECRET, store other user secrets in db and dynamically query db for secret depending on the connected user
+    //   secret: process.env.BYBITSECRET,
+    //   enable_time_sync: true,
     // });
     this.symbol = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
-  }
-
-  private clientsAreInit(): boolean {
-    return this.client !== null && this.wsClient !== null;
   }
 
   private async getAssetPrice(): Promise<number> {
@@ -62,8 +60,6 @@ class BybitTrading extends BybitClient {
 
   public async getWalletBalance(): Promise<AccountSummary> {
     try {
-      const isInit = this.clientsAreInit();
-      if (!isInit) return null;
       const response = await this.client.getWalletBalance({
         accountType: 'UNIFIED',
         coin: 'USDT',
@@ -136,8 +132,6 @@ class BybitTrading extends BybitClient {
 
   public async getAllOpenPosition(): Promise<PositionV5[]> {
     try {
-      const isInit = this.clientsAreInit();
-      if (!isInit) return null;
       const response = await this.client.getPositionInfo({
         category: this.category,
         settleCoin: 'USDT',

@@ -1,33 +1,30 @@
 import OpenAI from 'openai';
-import { appEmit } from './utils.js';
 
-class OpenAiAnalyze {
-  private openai: OpenAI | null = null;
+class OpenAiClient {
+  protected openai: OpenAI;
+
+  public updateOpenAiApi(apiKey: string): void {
+    try {
+      this.openai = new OpenAI({ apiKey: apiKey });
+    } catch (err) {
+      console.error('Error initialized openai: ', err);
+    }
+  }
+}
+
+class OpenAiAnalyze extends OpenAiClient {
+  // private openai: OpenAI;
   private promptContent: string;
+  // private newsHeadline: string;
   private systemContent: string;
   private promptContentWithTicker: string;
 
   constructor() {
+    super();
     this.promptContent = process.env.CONTENT;
     this.promptContentWithTicker = process.env.CONTENTWITHTICKER;
+    // this.openai = new OpenAI({ apiKey: apiKey });
     this.systemContent = process.env.SYSTEMCONTENT;
-    appEmit.on('openai', (apiKey: string) => {
-      console.log('emitting');
-      if (apiKey) {
-        console.log('checking openai***', apiKey);
-
-        this.updateOpenAiClient(apiKey);
-      }
-    });
-  }
-
-  private hasOpenApi = (): boolean => {
-    return this.openai !== null;
-  };
-
-  private updateOpenAiClient(apiKey: string): void {
-    this.openai = new OpenAI({ apiKey: apiKey });
-    console.log('updateddd: ', this.openai);
   }
 
   public callOpenAi = async (
@@ -35,12 +32,6 @@ class OpenAiAnalyze {
     ticker?: string[],
   ): Promise<string> => {
     try {
-      const hasApi = this.hasOpenApi();
-      console.log('hasopenapi: ', hasApi);
-      if (!hasApi) {
-        console.log('nulllllllllll');
-        return null;
-      }
       const completion = await this.openai.chat.completions.create({
         messages: [
           { role: 'system', content: this.systemContent },
@@ -66,4 +57,4 @@ class OpenAiAnalyze {
   };
 }
 
-export default OpenAiAnalyze;
+export { OpenAiClient, OpenAiAnalyze };

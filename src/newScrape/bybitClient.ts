@@ -1,31 +1,17 @@
 import { RestClientV5, WebsocketClient } from 'bybit-api';
-import { BybitApiData, Decoded } from '../interface.js';
-import { appEmit } from './utils.js';
 import EventEmitter from 'events';
-import { selectApiWithId } from '../login/userDatabase.js';
+// import { BybitApiData, Decoded } from '../interface.js';
+// import { appEmit } from './utils.js';
+// import { selectApiWithId } from '../login/userDatabase.js';
 
-abstract class BybitClient extends EventEmitter {
+class BybitClient extends EventEmitter {
   protected client: RestClientV5 | null = null;
   protected wsClient: WebsocketClient | null = null;
-
   constructor() {
     super();
-    appEmit.on('bybitApi', (data: BybitApiData) => {
-      if (data) {
-        console.log('apiEmit: ', data);
-        this.updateApi(data.apiKey, data.apiSecret);
-      }
-    });
-
-    appEmit.on('authRequest', async (data: Decoded) => {
-      if (data) {
-        const api = await selectApiWithId(data.userId);
-        this.updateApi(api.apikey, api.apisecret);
-      }
-    });
   }
 
-  private updateApi(apiKey: string, apiSecret: string): void {
+  public updateApi(apiKey: string, apiSecret: string): void {
     this.client = new RestClientV5({
       key: apiKey,
       secret: apiSecret,
@@ -37,9 +23,9 @@ abstract class BybitClient extends EventEmitter {
       secret: apiSecret,
       market: 'v5',
     });
-
-    console.log('client: ', this.client);
-    console.log('wsclient: ', this.wsClient);
+    console.log('updated');
+    // console.log('client: ', this.client);
+    // console.log('wsclient: ', this.wsClient);
   }
 }
 

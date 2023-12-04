@@ -17,6 +17,7 @@ import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
 import EventEmitter from 'events';
 import * as crypto from 'crypto';
 import axios from 'axios';
+import handleEnterPosition from './enterPositionHandler.js';
 // import { selectUser } from '../login/createUser.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
@@ -157,8 +158,9 @@ export const appEmit = new EventEmitter();
 //   }
 // };
 
-const startButton = (): void => {
+const startButton = async (): Promise<void> => {
   console.log('started button clicked');
+  await handleEnterPosition();
 };
 
 const stopButton = (): void => {
@@ -225,14 +227,14 @@ const chatgptClosePositionData = async (
 const submitNewsOrder = async (
   symbol: string,
   side: string,
-  percentage: number,
+  positionSize: number,
   chatgpt?: boolean,
 ): Promise<SubmitOrder> => {
   try {
     if (symbol === 'N/A') return null;
-    console.log('75: ', symbol, side, percentage);
+    console.log('75: ', symbol, side, positionSize);
     const bybitSubmit = new BybitTrading(symbol);
-    const response = await bybitSubmit.submitOrder(side, 0.001, chatgpt);
+    const response = await bybitSubmit.submitOrder(side, 0.001, chatgpt); //change position size later
     return response;
   } catch (err) {
     console.log('Error submitting news orders: ', err);

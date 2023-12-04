@@ -1,17 +1,17 @@
-import OpenAiAnalyze from './newScrape/chatgpt.js';
+// import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
 import {
   ExchangeHeader,
   ExchangeParams,
   Proxy,
-  TickerAndSentiment,
+  // TickerAndSentiment,
 } from './interface.js';
 // import BybitTrading from './newScrape/bybit.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
 import TreeNews from './newScrape/treeNews.js';
-import { extractString } from './newScrape/utils.js';
+// import { extractString } from './newScrape/utils.js';
 import dotenv from 'dotenv';
 // import { updateApi } from './login/userDatabase.js';
 // import { BybitPrice } from './newScrape/getPrice.js';
@@ -91,10 +91,10 @@ const main = async (): Promise<void> => {
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      const analyzer = new OpenAiAnalyze(),
-        response = await analyzer.callOpenAi(binanceAnnouncementListing);
+      // const analyzer = new OpenAiAnalyze(binanceAnnouncementListing),
+      //   response = await analyzer.callOpenAi();
 
-      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
       // for (const sentiment of companyAndSentiment) {
       //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
@@ -104,7 +104,7 @@ const main = async (): Promise<void> => {
       //   }
       // }
 
-      console.log('sentiment score: ', companyAndSentiment);
+      // console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -123,10 +123,10 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      const analyzer = new OpenAiAnalyze();
-      const response = await analyzer.callOpenAi(title);
-      const TickerAndSentiment = extractString(response);
-      console.log('SEC analyze: ', TickerAndSentiment);
+      // const analyzer = new OpenAiAnalyze();
+      // const response = await analyzer.callOpenAi(title);
+      // const TickerAndSentiment = extractString(response);
+      // console.log('SEC analyze: ', TickerAndSentiment);
 
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,

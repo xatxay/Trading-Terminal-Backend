@@ -7,48 +7,56 @@ const account = new AccountInfo();
 router.get(
   '/accountSummary',
   account.authenticateToken,
-  account.accountSummaryHandler(),
+  account.clientInit.bind(account),
+  account.accountSummaryHandler.bind(account),
 );
 router.get(
   '/positions',
   account.authenticateToken,
-  account.openPositionHandler(),
+  account.clientInit.bind(account),
+  account.openPositionHandler.bind(account),
 );
-router.post('/start', account.authenticateToken, account.startButtonHandler());
-router.post('/stop', account.authenticateToken, account.stopButtonHandler());
+router.post(
+  '/start',
+  account.authenticateToken,
+  account.openAiInit.bind(account),
+  account.clientInit.bind(account),
+  account.startButtonHandler,
+);
+router.post(
+  '/stop',
+  account.authenticateToken,
+  account.clientInit.bind(account),
+  account.stopButtonHandler,
+);
 router.post(
   '/closeAll',
   account.authenticateToken,
-  account.closeAllButtonHandler(),
-);
-router.post('/close', account.authenticateToken, account.closeButtonHandler());
-router.post(
-  'submitOrder',
-  account.authenticateToken,
-  account.submitOrderHandler(),
-);
-router.post('/logout', account.authenticateToken, account.logoutHandler());
-router.post('/login', account.loginHandler());
-router.post('/register', account.createAccountHandler());
-router.post(
-  '/apiSubmit',
-  account.authenticateToken,
-  account.submitApiHandler(),
+  account.clientInit.bind(account),
+  account.closeAllButtonHandler,
 );
 router.post(
-  '/apiCheck',
+  '/close',
   account.authenticateToken,
-  account.checkSubmittedApi(),
+  account.clientInit.bind(account),
+  account.closeButtonHandler,
 );
 router.post(
-  '/openAi',
+  '/submitOrder',
   account.authenticateToken,
-  account.submitOpenAiHandler(),
+  account.clientInit.bind(account),
+  account.submitOrderHandler,
 );
+router.post('/logout', account.authenticateToken, account.logoutHandler);
+router.post('/login', account.loginHandler);
+router.post('/register', account.createAccountHandler);
+router.post('/apiSubmit', account.authenticateToken, account.submitApiHandler);
+router.post('/apiCheck', account.authenticateToken, account.checkSubmittedApi);
+router.post('/openAi', account.authenticateToken, account.submitOpenAiHandler);
 router.post(
   '/openAiCheck',
   account.authenticateToken,
-  account.checkSubmittedOpenAi(),
+  account.checkSubmittedOpenAi,
 );
 
 export default router;

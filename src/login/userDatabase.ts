@@ -125,6 +125,22 @@ const selectOpenAiWithId = async (id: number): Promise<string> => {
   }
 };
 
+// const updatePositionSize = async (
+//   email: string,
+//   firstPositionSize: string,
+//   secondPositionSize: string,
+// ): Promise<void> => {
+//   try {
+//     const response = await pool.query(
+//       `UPDATE position_size SET firstPosition = $1, secondPosition = #2 WHERE email = $3`,
+//       [firstPositionSize, secondPositionSize, email],
+//     );
+//     console.log('updating position: ', response);
+//   } catch (err) {
+//     console.error('Error updating position size: ', err);
+//   }
+// };
+
 export {
   checkExistingUser,
   createUser,
@@ -134,4 +150,5 @@ export {
   checkUserSubmitOpenAiApi,
   selectApiWithId,
   selectOpenAiWithId,
+  // updatePositionSize,
 };

@@ -1,36 +1,21 @@
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
-import {
-  extractNewsWsData,
-  extractString,
-  formatNewsText,
-  getTimeStamp,
-  handleSubscribeList,
-  submitNewsOrder,
-} from './utils.js';
-import { BybitPrice } from './getPrice.js';
-import {
-  insertChatGptSentiment,
-  insertNewsHeadline,
-  insertTradeData,
-} from '../tradeData/tradeAnalyzeUtils.js';
-import OpenAiAnalyze from './chatgpt.js';
-import { PriceData } from '../interface.js';
-import BybitTrading from './bybit.js';
+// import { BybitPrice } from './getPrice.js';
+import EventEmitter from 'events';
+// import BybitPriceData from './priceData.js';
 
 dotenv.config();
-const bybitPercentage = new BybitPrice();
+// const bybitPercentage = new BybitPrice();
 
-class TreeNews {
+class TreeNews extends EventEmitter {
   private ws: WebSocket;
-  private tickerSubscribe: string[];
-  private analyzer: OpenAiAnalyze;
+  // private bybitKline: BybitPriceData;
 
   constructor(url: string) {
+    super();
     this.ws = new WebSocket(url);
     this.setupEvents();
-    this.tickerSubscribe = [];
-    this.analyzer = new OpenAiAnalyze();
+    // this.bybitKline.initializeWebsocket();
   }
 
   private setupEvents(): void {
@@ -45,88 +30,7 @@ class TreeNews {
   }
 
   private async onMessage(data: WebSocket.RawData): Promise<void> {
-    const messageObj = extractNewsWsData(data);
-
-    if (messageObj.suggestions) {
-      handleSubscribeList(bybitPercentage, messageObj, this.tickerSubscribe);
-    }
-
-    const wsTimeStamp = getTimeStamp(messageObj.time);
-
-    const response = await this.analyzer.callOpenAi(
-      messageObj.newsHeadline,
-      messageObj.suggestions,
-    );
-
-    const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
-
-    await insertNewsHeadline(
-      messageObj._id,
-      messageObj.title,
-      formattedNewsHeadline,
-      messageObj.url,
-      messageObj.link,
-      wsTimeStamp,
-      messageObj.suggestions,
-      messageObj.body,
-    );
-
-    console.log('subscribeset: ', this.tickerSubscribe);
-    console.log('newswsdata: ', messageObj);
-
-    if (response) {
-      const result = extractString(response);
-      console.log('gpt result: ', result);
-      const gptTimeStamp = getTimeStamp();
-      for (const tickerAndSentiment of result) {
-        const side =
-          tickerAndSentiment.sentiment >= 70
-            ? 'Buy'
-            : tickerAndSentiment.sentiment <= 70
-            ? 'Sell'
-            : '';
-        bybitPercentage.once('percentage', async (data: PriceData) => {
-          if (
-            (tickerAndSentiment.ticker === data.ticker &&
-              tickerAndSentiment.sentiment >= 70 &&
-              data.percentage < 2) ||
-            (tickerAndSentiment.ticker === data.ticker &&
-              tickerAndSentiment.sentiment <= 70 &&
-              data.percentage < 2)
-          ) {
-            console.log('submitting...________________');
-            const response = await submitNewsOrder(
-              tickerAndSentiment.ticker,
-              side,
-              0.001,
-              true,
-            );
-            const getEntryPrice = new BybitTrading(tickerAndSentiment.ticker);
-            const coinData = await getEntryPrice.getSpecificPosition();
-            if (+data.price >= +coinData.entryPrice * 5) {
-              await getEntryPrice.closeOrder(side, coinData.size);
-            }
-            await insertTradeData(
-              messageObj._id,
-              response.time,
-              tickerAndSentiment.ticker,
-              side,
-              '-',
-              '-',
-              '-',
-              '-',
-            );
-          }
-        });
-        await insertChatGptSentiment(
-          messageObj._id,
-          gptTimeStamp,
-          tickerAndSentiment.ticker,
-          tickerAndSentiment.sentiment,
-        );
-      }
-    }
-    console.log('Chatgpt response: ', response);
+    this.emit('treeEmit', data);
   }
 
   private onError(err: Error): void {
