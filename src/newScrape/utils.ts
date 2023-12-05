@@ -9,16 +9,13 @@ import {
   TerminalLog,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
-// import { AccountInfo } from './routes.js';
-// import { Express } from 'express';
-// import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
-import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import { bybitAccount } from './classInstance.js';
 import { startChatgptMode, stopChatgptMode } from './enterPositionHandler.js';
+import KlineClient from './klineClient.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
@@ -87,7 +84,7 @@ const extractString = (response: string): TickerAndSentiment[] => {
 };
 
 const handleSubscribeList = (
-  bybitPercentage: BybitPrice,
+  bybitPercentage: KlineClient,
   messageObj: TreeNewsMessage,
   tickerSubscribe: string[],
 ): void => {
@@ -168,6 +165,7 @@ const stopButton = (): void => {
 
 const closeAllButton = (): void => {
   console.log('close all button clicked');
+  // klineWs.subscribeV5('BIGTIME');
 };
 
 const closeButton = async (
@@ -251,7 +249,6 @@ const subscribeKline = async (
   ticker: string,
 ): Promise<void> => {
   try {
-    // const bybitClient = BybitClient.getInstance();
     const response = await bybitAccount.getInstrumentInfo(`${ticker}USDT`);
     const klineTicker = `kline.3.${ticker}USDT`;
     const activePublicLinearTopics = wsClient
@@ -260,7 +257,6 @@ const subscribeKline = async (
     if (response === 0 && !activePublicLinearTopics.has(klineTicker)) {
       wsClient.subscribeV5(`kline.3.${ticker}USDT`, 'linear');
     }
-
     console.log('Active public linear topic: ', activePublicLinearTopics);
   } catch (err) {
     console.error('Error subscribing to linear topic: ', err);
@@ -417,6 +413,20 @@ const sendLogMessage = (message: string): TerminalLog => {
   return logMessage;
 };
 
+const validateOpenAiApi = async (apiKey: string): Promise<void> => {
+  const url = process.env.VALIDATE_OPEN_AI;
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    console.log('checking api: ', response.data);
+  } catch (err) {
+    console.error('Error validating open ai api: ', err);
+  }
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -444,4 +454,5 @@ export {
   formatNewsText,
   validateBybitApi,
   sendLogMessage,
+  validateOpenAiApi,
 };

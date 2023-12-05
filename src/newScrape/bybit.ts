@@ -27,6 +27,7 @@ class BybitTrading extends BybitClient {
   private inPosition: number;
   private tp: string;
   private sl: string;
+  // set leverage, enter trade logic
 
   constructor() {
     super();

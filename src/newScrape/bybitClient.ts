@@ -1,8 +1,5 @@
 import { RestClientV5, WebsocketClient } from 'bybit-api';
 import EventEmitter from 'events';
-// import { BybitApiData, Decoded } from '../interface.js';
-// import { appEmit } from './utils.js';
-// import { selectApiWithId } from '../login/userDatabase.js';
 
 class BybitClient extends EventEmitter {
   public client: RestClientV5 | null = null;
@@ -18,10 +15,6 @@ class BybitClient extends EventEmitter {
       secret: apiSecret,
       enable_time_sync: true,
     });
-
-    // console.log('updated');
-    // console.log('client: ', this.client);
-    // console.log('wsclient: ', this.wsClient);
   }
 
   public updateWsApi(apiKey: string, apiSecret: string): void {

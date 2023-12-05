@@ -11,13 +11,12 @@ import {
   insertNewsHeadline,
   insertTradeData,
 } from '../tradeData/tradeAnalyzeUtils.js';
-// import { OpenAiAnalyze } from './chatgpt.js';
 import { PriceData, TreeNewsMessage } from '../interface.js';
-// import BybitTrading from './bybit.js';
 import {
   bybitAccount,
   bybitWsClient,
   dataFrontEnd,
+  klineWs,
   openAiClass,
 } from './classInstance.js';
 import TreeNews from './treeNews.js';
@@ -31,18 +30,14 @@ let startChatgpt = false;
 appEmit.on('treeEmit', async (messageObj: TreeNewsMessage) => {
   console.log('treeemit: ', messageObj);
   console.log('current mode: ', startChatgpt);
-  if (!startChatgpt) return;
-
   if (messageObj.suggestions) {
-    handleSubscribeList(bybitWsClient, messageObj, tickerSubscribe);
+    handleSubscribeList(klineWs, messageObj, tickerSubscribe);
   }
+  if (!startChatgpt) return;
 
   const wsTimeStamp = getTimeStamp(messageObj.time);
 
-  const chatGptResponse = await openAiClass.callOpenAi(
-    messageObj.newsHeadline,
-    messageObj.suggestions,
-  );
+  const chatGptResponse = await openAiClass.callOpenAi(messageObj.newsHeadline);
 
   const formattedNewsHeadline = formatNewsText(messageObj.newsHeadline);
 

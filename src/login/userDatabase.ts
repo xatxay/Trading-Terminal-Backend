@@ -118,8 +118,7 @@ const selectOpenAiWithId = async (id: number): Promise<string> => {
       `SELECT openai FROM login WHERE id = $1`,
       [userId],
     );
-    console.log('chatgpt api: ', response.rows[0]);
-    return response.rows[0];
+    return response.rows[0].openai;
   } catch (err) {
     console.error('Error getting openai with id: ', err);
     throw err;

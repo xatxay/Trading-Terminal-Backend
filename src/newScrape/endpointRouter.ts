@@ -19,7 +19,6 @@ router.get(
 router.post(
   '/start',
   account.authenticateToken,
-  // account.openAiInitclientInit.bind(account),
   account.clientInit.bind(account),
   account.startButtonHandler,
 );

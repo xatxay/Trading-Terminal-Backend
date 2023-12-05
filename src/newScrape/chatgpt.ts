@@ -5,7 +5,6 @@ class OpenAiClient {
 
   public updateOpenAiApi(apiKey: string): void {
     try {
-      console.log('openaoi: ', apiKey);
       this.openai = new OpenAI({ apiKey: apiKey });
     } catch (err) {
       console.error('Error initialized openai: ', err);
@@ -16,18 +15,16 @@ class OpenAiClient {
 class OpenAiAnalyze extends OpenAiClient {
   private promptContent: string;
   private systemContent: string;
-  private promptContentWithTicker: string;
 
   constructor() {
     super();
     this.promptContent = process.env.CONTENT;
-    this.promptContentWithTicker = process.env.CONTENTWITHTICKER;
     this.systemContent = process.env.SYSTEMCONTENT;
   }
 
   public callOpenAi = async (
     newsHeadline: string,
-    ticker?: string[],
+    // ticker?: string[],
   ): Promise<string> => {
     try {
       const completion = await this.openai.chat.completions.create({
@@ -35,18 +32,11 @@ class OpenAiAnalyze extends OpenAiClient {
           { role: 'system', content: this.systemContent },
           {
             role: 'user',
-            content: ticker
-              ? `${this.promptContentWithTicker} ${ticker} , news headline: ${newsHeadline}.`
-              : `${this.promptContent} ${newsHeadline}`,
+            content: `${this.promptContent} ${newsHeadline}`,
           },
         ],
         model: 'gpt-4-1106-preview',
       });
-      ticker
-        ? console.log(
-            `${this.promptContentWithTicker} ${ticker} , news headline: ${newsHeadline}.`,
-          )
-        : console.log(`${this.promptContent} ${newsHeadline}`);
       return completion.choices[0].message.content;
     } catch (err) {
       console.error('Error getting chatgpt response: ', err);

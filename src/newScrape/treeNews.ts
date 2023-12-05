@@ -2,20 +2,16 @@ import dotenv from 'dotenv';
 import WebSocket from 'ws';
 import { extractNewsWsData } from './utils.js';
 import EventEmitter from 'events';
-// import BybitPriceData from './priceData.js';
 
 dotenv.config();
 export const appEmit = new EventEmitter();
-// const bybitPercentage = new BybitPrice();
 
 class TreeNews {
   private ws: WebSocket;
-  // private bybitKline: BybitPriceData;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
     this.setupEvents();
-    // this.bybitKline.initializeWebsocket();
   }
 
   private setupEvents(): void {
@@ -31,7 +27,6 @@ class TreeNews {
 
   private async onMessage(data: WebSocket.RawData): Promise<void> {
     const messageObj = extractNewsWsData(data);
-    console.log('treenews message: ', messageObj);
     appEmit.emit('treeEmit', messageObj);
   }
 

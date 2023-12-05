@@ -1,19 +1,9 @@
-// import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import {
-  ExchangeHeader,
-  ExchangeParams,
-  Proxy,
-  // TickerAndSentiment,
-} from './interface.js';
-// import BybitTrading from './newScrape/bybit.js';
+import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-// import { extractString } from './newScrape/utils.js';
 import dotenv from 'dotenv';
-// import { updateApi } from './login/userDatabase.js';
-// import { BybitPrice } from './newScrape/getPrice.js';
 
 dotenv.config();
 
@@ -132,11 +122,6 @@ const main = async (): Promise<void> => {
       console.error('Error fetching SEC rss data: ', err);
     }
   };
-
-  // updateApi('assds@1233', '1', '2');
-  // appEmit.on('openai', (apiKey: string) => {
-  //   console.log('index: ', apiKey);
-  // });
 
   setInterval(
     async () =>

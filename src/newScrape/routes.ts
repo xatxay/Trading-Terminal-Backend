@@ -21,7 +21,12 @@ import {
   selectApiWithId,
   selectOpenAiWithId,
 } from '../login/userDatabase.js';
-import { bybitAccount, bybitWsClient, openAiClass } from './classInstance.js';
+import {
+  bybitAccount,
+  bybitWsClient,
+  klineWs,
+  openAiClass,
+} from './classInstance.js';
 
 class AccountInfo {
   // private bybitClient = BybitClient.getInstance();
@@ -273,6 +278,7 @@ class AccountInfo {
       openAiClass.updateOpenAiApi(openAiApi);
       bybitAccount.updateApi(response.apikey, response.apisecret);
       bybitWsClient.updateWsApi(response.apikey, response.apisecret);
+      klineWs.clientInit();
       if (!bybitWsClient.isWsInitialized()) {
         bybitWsClient.initializeWebsocket();
         bybitWsClient.subscribePositions();
