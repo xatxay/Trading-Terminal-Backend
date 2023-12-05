@@ -413,7 +413,7 @@ const sendLogMessage = (message: string): TerminalLog => {
   return logMessage;
 };
 
-const validateOpenAiApi = async (apiKey: string): Promise<void> => {
+const validateOpenAiApi = async (apiKey: string): Promise<string | null> => {
   const url = process.env.VALIDATE_OPEN_AI;
   try {
     const response = await axios.get(url, {
@@ -421,9 +421,14 @@ const validateOpenAiApi = async (apiKey: string): Promise<void> => {
         Authorization: `Bearer ${apiKey}`,
       },
     });
-    console.log('checking api: ', response.data);
+    console.log('validate adata: ', response.data);
+    return null;
   } catch (err) {
-    console.error('Error validating open ai api: ', err);
+    console.error(
+      'Error validating open ai api: ',
+      err.response?.data?.error?.message,
+    );
+    return err.response?.data?.error?.message || 'Error validating openai api';
   }
 };
 

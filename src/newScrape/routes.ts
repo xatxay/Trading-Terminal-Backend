@@ -9,6 +9,7 @@ import {
   stopButton,
   submitNewsOrder,
   validateBybitApi,
+  validateOpenAiApi,
 } from './utils.js';
 import { selectUser } from '../tradeData/tradeAnalyzeUtils.js';
 import {
@@ -234,6 +235,11 @@ class AccountInfo {
     try {
       const { email, openAiApi } = req.body;
       console.log('openai update: ', email, openAiApi);
+      const errorMessage = await validateOpenAiApi(openAiApi);
+      if (errorMessage) {
+        res.status(401).json({ message: errorMessage });
+        return;
+      }
       const response = await updateOpenAi(email, openAiApi);
       if (response && response > 0) {
         res.status(201).json({ message: 'Updated openai api successful!' });
@@ -242,7 +248,11 @@ class AccountInfo {
       }
     } catch (err) {
       res.status(500).json({ message: 'Error saving openai api' });
-      console.error('Failed saving openai api: ', err);
+      console.error(
+        'Failed saving openai api: ',
+        err.response.status,
+        err.response.statusText,
+      );
     }
   }
 

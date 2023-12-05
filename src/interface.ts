@@ -162,6 +162,15 @@ export interface PriceData {
   price: string;
 }
 
+export interface ValidateOpenAi {
+  object: string;
+  id: string;
+  ready: boolean;
+  owner: string;
+  permissions: null;
+  created: null;
+}
+
 export interface TerminalLog {
   type: string;
   message: string;
