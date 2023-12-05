@@ -1,10 +1,11 @@
 import OpenAI from 'openai';
 
-abstract class OpenAiClient {
+class OpenAiClient {
   protected openai: OpenAI;
 
   public updateOpenAiApi(apiKey: string): void {
     try {
+      console.log('openaoi: ', apiKey);
       this.openai = new OpenAI({ apiKey: apiKey });
     } catch (err) {
       console.error('Error initialized openai: ', err);

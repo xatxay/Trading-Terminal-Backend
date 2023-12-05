@@ -22,15 +22,11 @@ class BybitTrading extends BybitClient {
   private orderType: OrderTypeV5 = 'Market';
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
-  // private symbol: string;
   private leverage: string = '10';
   private price: string | number;
   private inPosition: number;
   private tp: string;
   private sl: string;
-  // private bybitClient: BybitClient;
-
-  // private openPosition: unknown;
 
   constructor() {
     super();
