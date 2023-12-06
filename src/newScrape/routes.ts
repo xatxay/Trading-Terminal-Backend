@@ -293,14 +293,15 @@ class AccountInfo {
     next: NextFunction,
   ): Promise<void> {
     try {
-      console.log('bybitclient: ', bybitAccount.client);
+      // console.log('bybitclient: ', bybitAccount.client);
       if (!req.user) return;
       const userId = req.user.userId;
+      klineWs.clientInit();
       // console.log('userid: ', userId);
       const response = await selectApiWithId(userId);
       const openAiApi = await selectOpenAiWithId(userId);
+      if (!response.apikey || !response.apisecret) return;
       console.log('response, openai: ', response, openAiApi);
-      klineWs.clientInit();
       // if (!openAiApi) {
       //   res.json({ message: 'Enter Openai Api To Get Started' });
       //   return;

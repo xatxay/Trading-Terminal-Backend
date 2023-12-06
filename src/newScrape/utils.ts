@@ -234,7 +234,7 @@ const submitNewsOrder = async (
     const response = await bybitAccount.submitOrder(
       symbol,
       side,
-      0.001,
+      positionSize,
       chatgpt,
     ); //change position size later
     return response;
@@ -379,8 +379,8 @@ const validateBybitApi = async ({
   apiKey,
   apiSecret,
 }: Signature): Promise<ResponseBybit> => {
-  const timeStamp = Date.now().toString();
-  const recvWindow = '5000';
+  const timeStamp = (Date.now() - 2000).toString();
+  const recvWindow = '10000';
   const apiUrl = process.env.QUERY_API;
   console.log('apiurl: ', apiUrl);
   const sign = generateSignature({ apiKey, apiSecret, timeStamp, recvWindow });

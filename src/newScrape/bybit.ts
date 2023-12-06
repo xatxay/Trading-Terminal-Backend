@@ -23,10 +23,10 @@ class BybitTrading extends BybitClient {
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
   private leverage: string = '10';
-  private price: string | number;
+  // private price: string | number;
   private inPosition: number;
-  private tp: string;
-  private sl: string;
+  // private tp: string;
+  // private sl: string;
   // set leverage, enter trade logic
 
   constructor() {
@@ -85,14 +85,15 @@ class BybitTrading extends BybitClient {
   ): Promise<string> {
     try {
       const assetPrice = await this.getAssetPrice(symbol);
-      const { totalAvailableBalance } = await this.getWalletBalance();
-      const positionSizeNumber =
-        (totalAvailableBalance * Number(this.leverage) * percentage) /
-        assetPrice;
+      // const { totalAvailableBalance } = await this.getWalletBalance();
+      // const positionSizeNumber =
+      //   (totalAvailableBalance * Number(this.leverage) * percentage) /
+      //   assetPrice;
+      const positionSizeNumber = percentage / assetPrice;
       const positionSize = positionSizeNumber.toFixed(0).toString();
       console.log('percentage: ', percentage);
       console.log('price: ', assetPrice);
-      console.log('accountBalnce: ', totalAvailableBalance);
+      // console.log('accountBalnce: ', totalAvailableBalance);
       console.log('Position size: ', positionSize);
       return positionSize;
     } catch (err) {
@@ -271,14 +272,14 @@ class BybitTrading extends BybitClient {
         this.inPosition = await this.isInPosition(ticker);
         console.log('this.inposition: ', this.inPosition);
         if (this.inPosition && this.inPosition !== 0) return null;
-        this.price = await this.getAssetPrice(ticker);
-        if (side === 'Buy') {
-          this.tp = (this.price * 0.005 + this.price).toString();
-          this.sl = (this.price - this.price * 0.02).toString();
-        } else {
-          this.tp = (this.price - this.price * 0.005).toString();
-          this.sl = (this.price + this.price * 0.02).toString();
-        }
+        // this.price = await this.getAssetPrice(ticker);
+        // if (side === 'Buy') {
+        //   this.tp = (this.price * 0.005 + this.price).toString();
+        //   this.sl = (this.price - this.price * 0.02).toString();
+        // } else {
+        //   this.tp = (this.price - this.price * 0.005).toString();
+        //   this.sl = (this.price + this.price * 0.02).toString();
+        // }
       }
 
       const response = await this.client.submitOrder({
@@ -290,8 +291,8 @@ class BybitTrading extends BybitClient {
         // price: this.price.toString(),
         timeInForce: this.timeInForce,
         orderLinkId: `${orderLinkId}`,
-        takeProfit: `${this.tp}`,
-        stopLoss: `${this.sl}`,
+        // takeProfit: `${this.tp}`,
+        // stopLoss: `${this.sl}`,
       });
 
       console.log('Submit order response: ', response);
