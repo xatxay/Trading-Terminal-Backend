@@ -4,6 +4,7 @@ class OpenAiClient {
   protected openai: OpenAI;
 
   public updateOpenAiApi(apiKey: string): void {
+    if (!apiKey) return;
     try {
       this.openai = new OpenAI({ apiKey: apiKey });
     } catch (err) {

@@ -254,6 +254,7 @@ const subscribeKline = async (
     const activePublicLinearTopics = wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
+    // response === 0 &&
     if (response === 0 && !activePublicLinearTopics.has(klineTicker)) {
       wsClient.subscribeV5(`kline.3.${ticker}USDT`, 'linear');
     }
@@ -400,7 +401,7 @@ const validateBybitApi = async ({
     return bybitResponse;
   } catch (err) {
     console.error('Error validating api: ', err);
-    throw err;
+    return err;
   }
 };
 
@@ -421,7 +422,7 @@ const validateOpenAiApi = async (apiKey: string): Promise<string | null> => {
         Authorization: `Bearer ${apiKey}`,
       },
     });
-    console.log('validate adata: ', response.data);
+    console.log('validate adata: ', response.data?.data?.length);
     return null;
   } catch (err) {
     console.error(

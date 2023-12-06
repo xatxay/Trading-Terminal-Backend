@@ -3,13 +3,14 @@ import EventEmitter from 'events';
 
 class BybitClient extends EventEmitter {
   public client: RestClientV5 | null = null;
-  protected wsClient: WebsocketClient | null = null;
+  public wsClient: WebsocketClient | null = null;
 
   constructor() {
     super();
   }
 
   public updateApi(apiKey: string, apiSecret: string): void {
+    if (!apiKey || !apiSecret) return;
     this.client = new RestClientV5({
       key: apiKey,
       secret: apiSecret,
@@ -18,6 +19,7 @@ class BybitClient extends EventEmitter {
   }
 
   public updateWsApi(apiKey: string, apiSecret: string): void {
+    if (!apiKey || !apiSecret) return;
     this.wsClient = new WebsocketClient({
       key: apiKey,
       secret: apiSecret,

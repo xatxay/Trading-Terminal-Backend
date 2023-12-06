@@ -15,7 +15,7 @@ import {
   SpecificCoin,
   SubmitOrder,
 } from '../interface.js';
-import BybitClient from './bybitClient.js';
+import BybitClient from './bybitClient.js'; //check logout and login
 
 class BybitTrading extends BybitClient {
   private category: CategoryV5 = 'linear';
@@ -55,8 +55,9 @@ class BybitTrading extends BybitClient {
       throw err;
     }
   }
-
+  ///////////////////////////////////////// INSTRUMENT KLINE
   public async getWalletBalance(): Promise<AccountSummary> {
+    if (!this.client) return null;
     try {
       const response = await this.client.getWalletBalance({
         accountType: 'UNIFIED',
@@ -133,7 +134,7 @@ class BybitTrading extends BybitClient {
 
   public async getAllOpenPosition(): Promise<PositionV5[]> {
     try {
-      // console.log('allposition: ', this.client);
+      if (!this.client) return null;
       const response = await this.client.getPositionInfo({
         category: this.category,
         settleCoin: 'USDT',
@@ -142,7 +143,7 @@ class BybitTrading extends BybitClient {
       return response.result.list;
     } catch (err) {
       console.log('Error getting all open positions: ', err);
-      throw err;
+      return err;
     }
   }
 
@@ -230,6 +231,7 @@ class BybitTrading extends BybitClient {
 
   public async getInstrumentInfo(ticker: string): Promise<number> {
     try {
+      if (!this.client) return null;
       const response = await this.client.getInstrumentsInfo({
         category: this.category,
         symbol: ticker,
@@ -238,7 +240,7 @@ class BybitTrading extends BybitClient {
       return response.retCode;
     } catch (err) {
       console.log('Error checking instrument: ', err);
-      throw err;
+      return err;
     }
   }
 

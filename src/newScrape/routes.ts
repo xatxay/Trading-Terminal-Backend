@@ -83,8 +83,17 @@ class AccountInfo {
 
   public async startButtonHandler(req: Request, res: Response): Promise<void> {
     try {
-      startButton();
-      res.send({ message: 'starting...' });
+      console.log('clicking');
+      const useId = req.user.userId;
+      const response = await selectOpenAiWithId(useId);
+      console.log('start response: ', response);
+      if (!response) {
+        res.status(400).send({ message: 'Please Enter Your Open AI Api' });
+        return;
+      } else {
+        startButton();
+        res.send({ message: 'Started Chatgpt Mode' });
+      }
       console.log('req: ', req.user);
     } catch (err) {
       res.status(500).send(err.message);
@@ -93,8 +102,8 @@ class AccountInfo {
 
   public async stopButtonHandler(req: Request, res: Response): Promise<void> {
     try {
-      stopButton(); //log for now
-      res.send({ message: 'stopping...' });
+      stopButton();
+      res.send({ message: 'Stopped Chatgpt Mode' });
       console.log('req: ', req.user);
     } catch (err) {
       res.status(500).send(err.message);
@@ -131,7 +140,8 @@ class AccountInfo {
     try {
       console.log('reqbody: ', req.body);
       const { side, symbol, positionSize } = req.body;
-      await submitNewsOrder(symbol, side, positionSize);
+      const ticker = symbol.includes('USDT') ? symbol : `${symbol}USDT`;
+      await submitNewsOrder(ticker, side, positionSize);
       res.send({ message: `${side} ${symbol} ${positionSize}` });
     } catch (err) {
       res.status(500).send(err.message);
@@ -200,16 +210,19 @@ class AccountInfo {
       const validateResponse = await validateBybitApi({ apiKey, apiSecret });
       if (validateResponse.retCode !== 0) {
         res.status(400).json({ message: validateResponse.retMsg });
+        return;
       }
       const response = await updateApi(email, apiKey, apiSecret);
       if (response === 0) {
         res.status(400).json({ message: 'Error saving api keys' });
+        return;
       } else {
         res.status(201).json({ message: 'Updated api successful!' });
       }
     } catch (err) {
       res.status(500).json({ message: 'Error saving api key: ', err });
       console.error('Error submitting api key: ', err);
+      return err;
     }
   }
 
@@ -280,15 +293,25 @@ class AccountInfo {
     next: NextFunction,
   ): Promise<void> {
     try {
+      // console.log('bybitclient: ', bybitAccount.client);
       if (!req.user) return;
       const userId = req.user.userId;
       // console.log('userid: ', userId);
       const response = await selectApiWithId(userId);
       const openAiApi = await selectOpenAiWithId(userId);
+      console.log('response, openai: ', response, openAiApi);
+      klineWs.clientInit();
+      // if (!openAiApi) {
+      //   res.json({ message: 'Enter Openai Api To Get Started' });
+      //   return;
+      // }
       openAiClass.updateOpenAiApi(openAiApi);
+      // if (!response || !response.apikey || !response.apisecret) {
+      //   res.json({ message: 'Enter Bybit Api To Get Started' });
+      //   return;
+      // }
       bybitAccount.updateApi(response.apikey, response.apisecret);
       bybitWsClient.updateWsApi(response.apikey, response.apisecret);
-      klineWs.clientInit();
       if (!bybitWsClient.isWsInitialized()) {
         bybitWsClient.initializeWebsocket();
         bybitWsClient.subscribePositions();
