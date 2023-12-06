@@ -26,6 +26,12 @@ class BybitClient extends EventEmitter {
       market: 'v5',
     });
   }
+
+  public resetClient(): void {
+    this.client = null;
+    this.wsClient = null;
+    console.log('resetting: ', this.client);
+  }
 }
 
 export default BybitClient;

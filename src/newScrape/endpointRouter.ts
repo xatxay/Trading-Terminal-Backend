@@ -47,7 +47,7 @@ router.post(
   account.submitOrderHandler,
 );
 router.post('/logout', account.authenticateToken, account.logoutHandler);
-router.post('/login', account.loginHandler);
+router.post('/login', account.clientReset.bind(account), account.loginHandler);
 router.post('/register', account.createAccountHandler);
 router.post('/apiSubmit', account.authenticateToken, account.submitApiHandler);
 router.post('/apiCheck', account.authenticateToken, account.checkSubmittedApi);

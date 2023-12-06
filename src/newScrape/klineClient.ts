@@ -17,7 +17,7 @@ class KlineClient extends EventEmitter {
   }
 
   public clientInit(): void {
-    console.log('subinit: ', this.isInit);
+    // console.log('subinit: ', this.isInit);
     if (this.isInit) return;
     this.klineClient.on('update', (data) => {
       if (data.wsKey === 'v5LinearPublic') {

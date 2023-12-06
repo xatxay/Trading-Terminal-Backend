@@ -293,7 +293,7 @@ class AccountInfo {
     next: NextFunction,
   ): Promise<void> {
     try {
-      // console.log('bybitclient: ', bybitAccount.client);
+      console.log('bybitclient: ', bybitAccount.client);
       if (!req.user) return;
       const userId = req.user.userId;
       // console.log('userid: ', userId);
@@ -321,6 +321,11 @@ class AccountInfo {
       res.status(500).json({ message: err });
       console.error('Error initialize clients: ', err);
     }
+  }
+
+  public clientReset(_req: Request, _res: Response, next: NextFunction): void {
+    bybitAccount.resetClient();
+    next();
   }
 
   // public submitPositionSize() {
