@@ -265,3 +265,8 @@ export type Signature = {
   timeStamp?: string;
   recvWindow?: string;
 };
+
+export interface SizePrice {
+  price: number;
+  size: string;
+}

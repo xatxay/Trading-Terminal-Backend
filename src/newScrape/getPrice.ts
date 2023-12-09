@@ -34,15 +34,19 @@ class BybitPrice extends BybitClient {
     });
 
     this.wsClient.on('open', () => {
-      console.log('Websocket opened');
+      console.log('Position Websocket opened');
     });
 
     this.wsClient.on('reconnect', () => {
-      console.log('Reconnecting...');
+      console.log('Position Reconnecting...');
     });
 
     this.wsClient.on('reconnected', () => {
-      console.log('Reconnected');
+      console.log('Position Reconnected');
+    });
+
+    this.wsClient.on('error', () => {
+      console.error('Error subscribing to position topic');
     });
 
     this.wsClient.on('response', (data) => {

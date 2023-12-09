@@ -12,6 +12,7 @@ import {
 import {
   AccountSummary,
   ResponseBybit,
+  SizePrice,
   SpecificCoin,
   SubmitOrder,
 } from '../interface.js';
@@ -23,11 +24,10 @@ class BybitTrading extends BybitClient {
   private quantity: string;
   private timeInForce: OrderTimeInForceV5 = 'GTC';
   private leverage: string = '10';
-  // private price: string | number;
+  private price: string | number;
   private inPosition: number;
-  // private tp: string;
-  // private sl: string;
-  // set leverage, enter trade logic
+  private tp: string;
+  private sl: string;
 
   constructor() {
     super();
@@ -81,28 +81,26 @@ class BybitTrading extends BybitClient {
 
   public async calculatePositionSize(
     symbol: string,
-    percentage: number,
-  ): Promise<string> {
+    size: number,
+  ): Promise<SizePrice> {
     try {
       const assetPrice = await this.getAssetPrice(symbol);
-      // const { totalAvailableBalance } = await this.getWalletBalance();
-      // const positionSizeNumber =
-      //   (totalAvailableBalance * Number(this.leverage) * percentage) /
-      //   assetPrice;
-      const positionSizeNumber = percentage / assetPrice;
-      const positionSize = positionSizeNumber.toFixed(0).toString();
-      console.log('percentage: ', percentage);
-      console.log('price: ', assetPrice);
-      // console.log('accountBalnce: ', totalAvailableBalance);
+      const positionSizeNumber = size / assetPrice;
+      const positionSize = positionSizeNumber.toFixed(3).toString();
+      console.log('size: ', size, assetPrice);
       console.log('Position size: ', positionSize);
-      return positionSize;
+      const sizePrice = {
+        price: assetPrice,
+        size: positionSize,
+      };
+      return sizePrice;
     } catch (err) {
       console.error('Failed calculating position size: ', err);
       throw err;
     }
   }
 
-  private async setLeverage(symbol: string): Promise<void> {
+  public async setLeverage(symbol: string): Promise<void> {
     try {
       const response = await this.client.setLeverage({
         category: 'linear',
@@ -265,21 +263,21 @@ class BybitTrading extends BybitClient {
       const checkInstrument = await this.getInstrumentInfo(ticker);
       if (checkInstrument !== 0) return null;
 
-      await this.setLeverage(ticker);
-      this.quantity = await this.calculatePositionSize(ticker, percentage);
+      const size = await this.calculatePositionSize(ticker, percentage);
+      this.quantity = size.size;
+      this.price = size.price;
 
       if (chatgpt) {
         this.inPosition = await this.isInPosition(ticker);
         console.log('this.inposition: ', this.inPosition);
         if (this.inPosition && this.inPosition !== 0) return null;
-        // this.price = await this.getAssetPrice(ticker);
-        // if (side === 'Buy') {
-        //   this.tp = (this.price * 0.005 + this.price).toString();
-        //   this.sl = (this.price - this.price * 0.02).toString();
-        // } else {
-        //   this.tp = (this.price - this.price * 0.005).toString();
-        //   this.sl = (this.price + this.price * 0.02).toString();
-        // }
+        if (side === 'Buy') {
+          this.tp = (this.price * 0.005 + this.price).toString();
+          this.sl = (this.price - this.price * 0.02).toString();
+        } else {
+          this.tp = (this.price - this.price * 0.005).toString();
+          this.sl = (this.price + this.price * 0.02).toString();
+        }
       }
 
       const response = await this.client.submitOrder({
@@ -291,8 +289,8 @@ class BybitTrading extends BybitClient {
         // price: this.price.toString(),
         timeInForce: this.timeInForce,
         orderLinkId: `${orderLinkId}`,
-        // takeProfit: `${this.tp}`,
-        // stopLoss: `${this.sl}`,
+        takeProfit: chatgpt ? `${this.tp}` : '0',
+        stopLoss: chatgpt ? `${this.sl}` : '0',
       });
 
       console.log('Submit order response: ', response);

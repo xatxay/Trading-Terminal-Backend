@@ -29,19 +29,19 @@ class KlineClient extends EventEmitter {
       }
     });
     this.klineClient.on('open', () => {
-      console.log('Websocket opened');
+      console.log('Kline Websocket opened');
     });
 
     this.klineClient.on('reconnect', () => {
-      console.log('Reconnecting...');
+      console.log('Kline Reconnecting...');
     });
 
     this.klineClient.on('reconnected', () => {
-      console.log('Reconnected');
+      console.log('Kline Reconnected');
     });
 
     this.klineClient.on('response', (data) => {
-      console.log('Log response: ', JSON.stringify(data, null, 2));
+      console.log('Kline Log response: ', JSON.stringify(data, null, 2));
     });
     this.isInit = true;
   }

@@ -115,7 +115,8 @@ class AccountInfo {
     res: Response,
   ): Promise<void> {
     try {
-      closeAllButton(); //log for now
+      const { side, symbol, positionSize } = req.body;
+      closeAllButton(symbol, side, positionSize); //log for now
       res.send({ message: 'closing all...' });
       console.log('req: ', req.user);
     } catch (err) {

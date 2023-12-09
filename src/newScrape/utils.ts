@@ -163,8 +163,13 @@ const stopButton = (): void => {
   stopChatgptMode();
 };
 
-const closeAllButton = (): void => {
+const closeAllButton = async (
+  symbol: string,
+  side: string,
+  size: number,
+): Promise<void> => {
   console.log('close all button clicked');
+  await submitNewsOrder(symbol, side, size);
   // klineWs.subscribeV5('BIGTIME');
 };
 
