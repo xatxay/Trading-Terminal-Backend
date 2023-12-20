@@ -3,7 +3,7 @@ import {
   extractString,
   formatNewsText,
   getTimeStamp,
-  // handleSubscribeList,
+  handleSubscribeList,
   submitNewsOrder,
 } from './utils.js';
 import {
@@ -16,7 +16,7 @@ import {
   bybitAccount,
   bybitWsClient,
   dataFrontEnd,
-  // klineWs,
+  klineWs,
   openAiClass,
 } from './classInstance.js';
 import TreeNews from './treeNews.js';
@@ -30,9 +30,9 @@ let startChatgpt = false;
 appEmit.on('treeEmit', async (messageObj: TreeNewsMessage) => {
   console.log('treeemit: ', messageObj);
   console.log('current mode: ', startChatgpt);
-  // if (messageObj.suggestions) {
-  //   handleSubscribeList(klineWs, messageObj, tickerSubscribe);
-  // }
+  if (messageObj.suggestions) {
+    handleSubscribeList(klineWs, messageObj, tickerSubscribe);
+  }
   if (!startChatgpt) return;
 
   const wsTimeStamp = getTimeStamp(messageObj.time);

@@ -95,7 +95,7 @@ const handleSubscribeList = (
       tickerSubscribe.splice(existingIndex, 1);
     }
     tickerSubscribe.unshift(coin);
-    if (tickerSubscribe.length > 15) {
+    if (tickerSubscribe.length > 10) {
       const removedCoin = tickerSubscribe.pop();
       removedCoin && bybitPercentage.unsubscribeV5(coin);
     }
