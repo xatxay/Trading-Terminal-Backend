@@ -33,6 +33,7 @@
   "scripts": {
     "start": "node build/src/index.js",
     "dev": "concurrently -k \"npm run build:watch\" \"nodemon\"",
+    "create-db": "node --loader ts-node/esm ./src/login/createDBScript.ts",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",

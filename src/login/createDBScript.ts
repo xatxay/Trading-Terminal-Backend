@@ -17,5 +17,6 @@ const createDb = async (fileName: string): Promise<void> => {
   }
 };
 
+//use npm run create-db to create the database before starting the app
 await createDb('loginTable.sql');
 await createDb('tradeAnalyze.sql');

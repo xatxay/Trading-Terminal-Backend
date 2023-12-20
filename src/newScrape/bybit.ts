@@ -71,7 +71,7 @@ class BybitTrading extends BybitClient {
         ),
         totalPerpUPL: Number(response.result.list[0].totalPerpUPL),
       };
-      console.log('checking wallet balance');
+      // console.log('checking wallet balance');
       return accountSummary;
     } catch (err) {
       console.error('Failed getting balance: ', err);
@@ -86,7 +86,7 @@ class BybitTrading extends BybitClient {
     try {
       const assetPrice = await this.getAssetPrice(symbol);
       const positionSizeNumber = size / assetPrice;
-      const positionSize = positionSizeNumber.toFixed(3).toString();
+      const positionSize = Math.round(positionSizeNumber).toString();
       console.log('size: ', size, assetPrice);
       console.log('Position size: ', positionSize);
       const sizePrice = {
@@ -138,7 +138,7 @@ class BybitTrading extends BybitClient {
         category: this.category,
         settleCoin: 'USDT',
       });
-      console.log('checking all positions');
+      // console.log('checking all positions');
       return response.result.list;
     } catch (err) {
       console.log('Error getting all open positions: ', err);
