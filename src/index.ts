@@ -1,44 +1,29 @@
-import OpenAiAnalyze from './newScrape/chatgpt.js';
 import NewScraper from './newScrape/newScrape.js';
 import { Binance, Upbit } from './newScrape/exchange.js';
-import {
-  ExchangeHeader,
-  ExchangeParams,
-  Proxy,
-  TickerAndSentiment,
-} from './interface.js';
-// import BybitTrading from './newScrape/bybit.js';
+import { ExchangeHeader, ExchangeParams, Proxy } from './interface.js';
 import convertProxiesToString from './proxy/proxies.js';
 import startServer from './newScrape/server.js';
-import TreeNews from './newScrape/treeNews.js';
-import { extractString, formatNewsText } from './newScrape/utils.js';
-import createDb from './login/createDatabase.js';
-import { createUser } from './login/createUser.js';
 import dotenv from 'dotenv';
-// import { BybitPrice } from './newScrape/getPrice.js';
 
 dotenv.config();
 
 const main = async (): Promise<void> => {
-  const apiKey = process.env.OPENAI_API_KEY;
   const allProxies: Proxy[] = convertProxiesToString();
-  const treeNews = new TreeNews(process.env.TREENEWS);
-  treeNews.startPing();
 
-  // TODO: remove create database scripts
-  // TODO: refactor database scripts into node scripts to run on ec2 machines
-  // TODO: create '/create-user' endpoint that takes in email and password and creates a new user in the 'login' table for the db
-  // TODO: set up bybit to handle multiple user credentials
-  // TODO: create bybit api integration for other users
-  const handleUser = async (): Promise<void> => {
-    const account = {
-      username: process.env.USERNAMELOGIN,
-      password: process.env.PASSWORD,
-    };
-    await createDb('loginTable.sql');
-    await createDb('tradeAnalyze.sql');
-    await createUser(account.username, account.password);
-  };
+  // TODO: remove create database scripts (done)
+  // TODO: refactor database scripts into node scripts to run on ec2 machines (done)
+  // TODO: create '/create-user' endpoint that takes in email and password and creates a new user in the 'login' table for the db (done)
+  // TODO: set up bybit to handle multiple user credentials (done)
+  // TODO: create bybit api integration for other users (done)
+  // const handleUser = async (): Promise<void> => {
+  //   const account = {
+  //     username: process.env.USERNAMELOGIN,
+  //     password: process.env.PASSWORD,
+  //   };
+  // await createDb('loginTable.sql');
+  // await createDb('tradeAnalyze.sql');
+  //   await createUser(account.username, account.password);
+  // };
 
   const routesHandling = (): void => {
     startServer();
@@ -93,10 +78,10 @@ const main = async (): Promise<void> => {
           .replaceAll(' ', '-'),
         listingLink = `https://www.binance.com/en/support/announcement/${textFormat}-${binanceListing.articles[0].code}`,
         binanceAnnouncementListing = binanceListing.articles[0].title;
-      const analyzer = new OpenAiAnalyze(apiKey, binanceAnnouncementListing),
-        response = await analyzer.callOpenAi();
+      // const analyzer = new OpenAiAnalyze(binanceAnnouncementListing),
+      //   response = await analyzer.callOpenAi();
 
-      const companyAndSentiment: TickerAndSentiment[] = extractString(response);
+      // const companyAndSentiment: TickerAndSentiment[] = extractString(response);
 
       // for (const sentiment of companyAndSentiment) {
       //   if (sentiment.sentiment >= 75 || sentiment.sentiment <= 75) {
@@ -106,7 +91,7 @@ const main = async (): Promise<void> => {
       //   }
       // }
 
-      console.log('sentiment score: ', companyAndSentiment);
+      // console.log('sentiment score: ', companyAndSentiment);
       console.log(
         `Binance Listing: ${binanceAnnouncementListing}\nTimestampt: ${announcementTime}\nLink: ${listingLink}\n------\n`,
       );
@@ -125,10 +110,10 @@ const main = async (): Promise<void> => {
         contentSnippet = pressreleases[0].contentSnippet,
         date = pressreleases[0].isoDate;
 
-      const analyzer = new OpenAiAnalyze(apiKey, title);
-      const response = await analyzer.callOpenAi();
-      const TickerAndSentiment = extractString(response);
-      console.log('SEC analyze: ', TickerAndSentiment);
+      // const analyzer = new OpenAiAnalyze();
+      // const response = await analyzer.callOpenAi(title);
+      // const TickerAndSentiment = extractString(response);
+      // console.log('SEC analyze: ', TickerAndSentiment);
 
       console.log(
         `pressreleases: ${title}\nContent snippet: ${contentSnippet}\nLink: ${link}\nTimestampt: ${date}\n------\n`,
@@ -138,22 +123,6 @@ const main = async (): Promise<void> => {
     }
   };
 
-  // const now = Date.now();
-  // const twoDay = new Date(now - 5 * 60 * 1000);
-  // const time = twoDay.getTime();
-  // const test1 = new BybitTrading('BSV');
-  // test1.calculatePositionSize(0.01);
-  // await test1.getSpecificPosition();
-  // const result = await test1.getInstrumentInfo('OP');
-  // console.log('result: ', result);
-  // test1.getTradeResult(1700579030285);
-  // await test1.submitOrder('Buy', 0.001);
-  // const positions = new BybitPrice();
-  // positions.subscribePositions();
-  const newsTesting = process.env.NEWSTESTING;
-  formatNewsText(newsTesting);
-
-  await handleUser();
   setInterval(
     async () =>
       await Promise.all([upbitScrape(), binanceScrape(), secScrape()]),

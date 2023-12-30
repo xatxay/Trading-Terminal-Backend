@@ -1,4 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
+import { Decoded } from './src/interface.ts';
 // import session from 'express-session';
 
 // declare module 'express-session' {
@@ -9,6 +10,6 @@ import { JwtPayload } from 'jsonwebtoken';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: JwtPayload | string | void;
+    user?: Decoded;
   }
 }

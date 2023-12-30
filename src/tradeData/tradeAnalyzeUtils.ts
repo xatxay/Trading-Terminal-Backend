@@ -1,4 +1,13 @@
 import pool from '../login/newPool.js';
+import { CheckApiData } from '../interface.js';
+
+const selectUser = async (email: string): Promise<CheckApiData> => {
+  const result = await pool.query(`SELECT * FROM login WHERE email = $1`, [
+    email,
+  ]);
+  const user = result.rows[0];
+  return user;
+};
 
 const insertNewsHeadline = async (
   id: string,
@@ -81,4 +90,5 @@ export {
   insertNewsHeadline,
   insertTradeData,
   updateTradeOutcome,
+  selectUser,
 };

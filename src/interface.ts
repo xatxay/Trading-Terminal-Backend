@@ -162,6 +162,21 @@ export interface PriceData {
   price: string;
 }
 
+export interface ValidateOpenAi {
+  object: string;
+  id: string;
+  ready: boolean;
+  owner: string;
+  permissions: null;
+  created: null;
+}
+
+export interface TerminalLog {
+  type: string;
+  message: string;
+  timeStamp: string;
+}
+
 export interface BothData {
   news: TreeNewsMessage;
   price: PriceData[];
@@ -173,16 +188,16 @@ export interface OpenOrder {
 
 export interface UserLogin {
   id: number;
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface ResponseBybit {
   retCode: number;
   retMsg: string;
-  result: Record<string, never> | Result | TradeResult;
+  result?: Record<string, never> | Result | TradeResult;
   retExtInfo?: Record<string, never>;
-  time: number;
+  time?: number;
 }
 
 export interface TradeResult {
@@ -220,5 +235,38 @@ interface Result {
 
 export interface SpecificCoin {
   entryPrice: string;
+  size: string;
+}
+
+export interface CheckApiData extends UserLogin {
+  apikey: string;
+  apisecret: string;
+}
+
+export interface CheckOpenAi {
+  openai: string;
+}
+
+export interface BybitApiData {
+  email?: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+export interface Decoded {
+  userId: number;
+  iat: number;
+  exp: number;
+}
+
+export type Signature = {
+  apiKey: string;
+  apiSecret: string;
+  timeStamp?: string;
+  recvWindow?: string;
+};
+
+export interface SizePrice {
+  price: number;
   size: string;
 }

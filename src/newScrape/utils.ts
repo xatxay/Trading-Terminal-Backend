@@ -5,15 +5,17 @@ import {
   ResponseBybit,
   TreeNewsMessage,
   SubmitOrder,
+  Signature,
+  TerminalLog,
 } from '../interface.js';
 import { TickerAndSentiment } from '../interface.js';
-import { AccountInfo } from './routes.js';
-import { Express } from 'express';
-import BybitTrading from './bybit.js';
 import { WebsocketClient, WS_KEY_MAP } from 'bybit-api';
-import { BybitPrice } from './getPrice.js';
 import { updateTradeOutcome } from '../tradeData/tradeAnalyzeUtils.js';
-// import { selectUser } from '../login/createUser.js';
+import * as crypto from 'crypto';
+import axios from 'axios';
+import { bybitAccount } from './classInstance.js';
+import { startChatgptMode, stopChatgptMode } from './enterPositionHandler.js';
+import KlineClient from './klineClient.js';
 // import { selectProxy } from '../proxy/manageDb.js';
 // import ProxyManager from '../proxy/proxyManager.js';
 
@@ -82,7 +84,7 @@ const extractString = (response: string): TickerAndSentiment[] => {
 };
 
 const handleSubscribeList = (
-  bybitPercentage: BybitPrice,
+  bybitPercentage: KlineClient,
   messageObj: TreeNewsMessage,
   tickerSubscribe: string[],
 ): void => {
@@ -93,7 +95,7 @@ const handleSubscribeList = (
       tickerSubscribe.splice(existingIndex, 1);
     }
     tickerSubscribe.unshift(coin);
-    if (tickerSubscribe.length > 15) {
+    if (tickerSubscribe.length > 10) {
       const removedCoin = tickerSubscribe.pop();
       removedCoin && bybitPercentage.unsubscribeV5(coin);
     }
@@ -133,34 +135,42 @@ const formatNewsText = (newsText: string): string => {
 //   }
 // };
 
-const sendAccountInfoRequest = (app: Express): void => {
-  // TODO: refactor this to use express ROUTERS
-  try {
-    const sendAccountInfo = new AccountInfo(app);
-    sendAccountInfo.getRequest('/accountSummary');
-    sendAccountInfo.getRequest('/positions');
-    sendAccountInfo.postRequest('/start');
-    sendAccountInfo.postRequest('/stop');
-    sendAccountInfo.postRequest('/closeAll');
-    sendAccountInfo.postRequest('/close');
-    sendAccountInfo.postRequest('/submitOrder');
-    sendAccountInfo.postRequest('/login');
-    sendAccountInfo.postRequest('/logout');
-  } catch (err) {
-    console.error('Error sending requests: ', err);
-  }
-};
+// const sendAccountInfoRequest = (app: Express): void => {
+//   // TODO: refactor this to use express ROUTERS (done)
+//   try {
+//     const sendAccountInfo = new AccountInfo(app);
+//     sendAccountInfo.getRequest('/accountSummary');
+//     sendAccountInfo.getRequest('/positions');
+//     sendAccountInfo.postRequest('/start');
+//     sendAccountInfo.postRequest('/stop');
+//     sendAccountInfo.postRequest('/closeAll');
+//     sendAccountInfo.postRequest('/close');
+//     sendAccountInfo.postRequest('/submitOrder');
+//     sendAccountInfo.postRequest('/login');
+//     sendAccountInfo.postRequest('/logout');
+//   } catch (err) {
+//     console.error('Error sending requests: ', err);
+//   }
+// };
 
-const startButton = (): void => {
+const startButton = async (): Promise<void> => {
   console.log('started button clicked');
+  startChatgptMode();
 };
 
 const stopButton = (): void => {
   console.log('stop button clicked');
+  stopChatgptMode();
 };
 
-const closeAllButton = (): void => {
+const closeAllButton = async (
+  symbol: string,
+  side: string,
+  size: number,
+): Promise<void> => {
   console.log('close all button clicked');
+  await submitNewsOrder(symbol, side, size);
+  // klineWs.subscribeV5('BIGTIME');
 };
 
 const closeButton = async (
@@ -168,8 +178,8 @@ const closeButton = async (
   side: string,
 ): Promise<ResponseBybit> => {
   try {
-    const bybitOrder = new BybitTrading(symbol);
-    const response = await bybitOrder.closeOrder(side);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.closeOrder(symbol, side);
     console.log('close button clicked');
     return response;
   } catch (err) {
@@ -184,8 +194,8 @@ const chatgptClosePositionData = async (
 ): Promise<void> => {
   try {
     console.log('casdasd: ', symbol, '|', time);
-    const bybitOrder = new BybitTrading(symbol);
-    const response = await bybitOrder.getTradeResult(time);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.getTradeResult(symbol, time);
     const tradeResult = {
       symbol: response.result.list[0].symbol,
       entryPrice: response.result.list[0].avgEntryPrice,
@@ -219,14 +229,19 @@ const chatgptClosePositionData = async (
 const submitNewsOrder = async (
   symbol: string,
   side: string,
-  percentage: number,
+  positionSize: number,
   chatgpt?: boolean,
 ): Promise<SubmitOrder> => {
   try {
     if (symbol === 'N/A') return null;
-    console.log('75: ', symbol, side, percentage);
-    const bybitSubmit = new BybitTrading(symbol);
-    const response = await bybitSubmit.submitOrder(side, 0.001, chatgpt);
+    console.log('75: ', symbol, side, positionSize);
+    // const bybitClient = BybitClient.getInstance();
+    const response = await bybitAccount.submitOrder(
+      symbol,
+      side,
+      positionSize,
+      chatgpt,
+    ); //change position size later
     return response;
   } catch (err) {
     console.log('Error submitting news orders: ', err);
@@ -239,16 +254,15 @@ const subscribeKline = async (
   ticker: string,
 ): Promise<void> => {
   try {
-    const instrument = new BybitTrading('');
-    const response = await instrument.getInstrumentInfo(`${ticker}USDT`);
+    const response = await bybitAccount.getInstrumentInfo(`${ticker}USDT`);
     const klineTicker = `kline.3.${ticker}USDT`;
     const activePublicLinearTopics = wsClient
       .getWsStore()
       .getTopics(WS_KEY_MAP.v5LinearPublic);
+    // response === 0 &&
     if (response === 0 && !activePublicLinearTopics.has(klineTicker)) {
       wsClient.subscribeV5(`kline.3.${ticker}USDT`, 'linear');
     }
-
     console.log('Active public linear topic: ', activePublicLinearTopics);
   } catch (err) {
     console.error('Error subscribing to linear topic: ', err);
@@ -351,6 +365,79 @@ const checkPartials = (
   }
 };
 
+const generateSignature = ({
+  apiKey,
+  apiSecret,
+  timeStamp,
+  recvWindow,
+}: Signature): string => {
+  const params = timeStamp + apiKey + recvWindow;
+  const signature = crypto
+    .createHmac('sha256', apiSecret)
+    .update(params)
+    .digest('hex');
+  console.log('sign: ', signature);
+  return signature;
+};
+
+const validateBybitApi = async ({
+  apiKey,
+  apiSecret,
+}: Signature): Promise<ResponseBybit> => {
+  const timeStamp = (Date.now() - 2000).toString();
+  const recvWindow = '10000';
+  const apiUrl = process.env.QUERY_API;
+  console.log('apiurl: ', apiUrl);
+  const sign = generateSignature({ apiKey, apiSecret, timeStamp, recvWindow });
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'X-BAPI-API-KEY': apiKey,
+        'X-BAPI-TIMESTAMP': timeStamp,
+        'X-BAPI-RECV-WINDOW': recvWindow,
+        'X-BAPI-SIGN': sign,
+      },
+    });
+    console.log('validate api: ', response.data);
+    const bybitResponse: ResponseBybit = {
+      retCode: response.data.retCode,
+      retMsg: response.data.retMsg,
+    }; // axios type any any
+    return bybitResponse;
+  } catch (err) {
+    console.error('Error validating api: ', err);
+    return err;
+  }
+};
+
+const sendLogMessage = (message: string): TerminalLog => {
+  const logMessage = {
+    type: 'log',
+    message: message,
+    timeStamp: getTimeStamp(),
+  };
+  return logMessage;
+};
+
+const validateOpenAiApi = async (apiKey: string): Promise<string | null> => {
+  const url = process.env.VALIDATE_OPEN_AI;
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    console.log('validate adata: ', response.data?.data?.length);
+    return null;
+  } catch (err) {
+    console.error(
+      'Error validating open ai api: ',
+      err.response?.data?.error?.message,
+    );
+    return err.response?.data?.error?.message || 'Error validating openai api';
+  }
+};
+
 // const proxyManage = async (): Promise<string> => {
 //   const allProxies = await selectProxy();
 //   const proxy = new ProxyManager(allProxies);
@@ -361,7 +448,6 @@ const checkPartials = (
 
 export {
   extractString,
-  sendAccountInfoRequest,
   extractNewsWsData,
   startButton,
   closeButton,
@@ -377,5 +463,7 @@ export {
   chatgptClosePositionData,
   checkPartials,
   formatNewsText,
-  // isPositionData,
+  validateBybitApi,
+  sendLogMessage,
+  validateOpenAiApi,
 };

@@ -8,7 +8,9 @@ A one click execution news trading terminal with addition option for news headli
 
 ## Getting Started
 
-This is the backend code for the terminal.
+
+This is the backend code for the terminal. Front end code for the web app is [here](https://github.com/xatxay/trading-terminal)
+
 
 ### Clone repository
 
