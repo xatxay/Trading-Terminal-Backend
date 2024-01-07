@@ -41,7 +41,7 @@ const wsServer = new WebSocket.Server({ server: httpsServer });
 export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
-  app.use(cors());
+  app.use(cors({ origin: '*' }));
   app.use(express.json());
   app.use(endpointRouter);
   app.use(apiLimiter);
