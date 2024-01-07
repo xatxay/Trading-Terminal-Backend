@@ -42,6 +42,14 @@ export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
   // app.use(cors({ origin: '*' }));
+  app.use(function (_req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept',
+    );
+    next();
+  });
   app.use(express.json());
   app.use(endpointRouter);
   app.use(apiLimiter);

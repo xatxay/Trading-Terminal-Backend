@@ -1,8 +1,12 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { AccountInfo } from './routes.js';
 
 const router = express.Router();
 const account = new AccountInfo();
+
+router.get('/heath', (_req: Request, res: Response) => {
+  res.status(200).send({ message: 'hello world' });
+});
 
 router.get(
   '/accountSummary',
