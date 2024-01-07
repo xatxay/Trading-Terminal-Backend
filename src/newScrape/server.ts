@@ -16,7 +16,7 @@ const apiLimiter = rateLimit({
 });
 
 const app: Express = express();
-// const PORT = Number(process.env.PORT) || 443;
+const PORT = Number(process.env.PORT) || 8080;
 
 // const corsOptions = {
 //   // TODO: allow for all traffic (done)
@@ -41,7 +41,7 @@ const wsServer = new WebSocket.Server({ server: httpsServer });
 export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
-  httpsServer.listen(443, () => {
+  httpsServer.listen(PORT, () => {
     console.log(`Server is running on https://irregularterminal.com`);
   });
 
