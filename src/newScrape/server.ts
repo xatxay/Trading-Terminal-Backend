@@ -24,7 +24,12 @@ const PORT = Number(process.env.PORT) || 8080;
 //   credentials: true,
 // };
 
-app.use(cors());
+const corsOptions = {
+  origin: 'https://irregularterminal.netlify.app',
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(endpointRouter);
 app.use(apiLimiter);
