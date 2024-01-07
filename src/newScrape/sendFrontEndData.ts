@@ -5,6 +5,7 @@ class FrontEndWebsocket {
   private ws: WebSocket.Server;
 
   constructor(wsServer: WebSocket.Server) {
+    // this.ws = new WebSocket.Server({ port: 8080 });
     this.ws = wsServer;
     this.startPriceWebsocket();
   }

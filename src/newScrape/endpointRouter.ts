@@ -4,7 +4,7 @@ import { AccountInfo } from './routes.js';
 const router = express.Router();
 const account = new AccountInfo();
 
-router.get('/heath', (_req: Request, res: Response) => {
+router.get('/health', (_req: Request, res: Response) => {
   res.status(200).send({ message: 'hello world' });
 });
 
