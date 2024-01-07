@@ -29,11 +29,6 @@ const corsOptions = {
   credentials: true,
 };
 
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(endpointRouter);
-app.use(apiLimiter);
-
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
 const certificatePath = process.env.CERTIFICATE_PATH;
 const privateKey = fs.readFileSync(privateKeyPath, 'utf-8');
@@ -46,6 +41,10 @@ const wsServer = new WebSocket.Server({ server: httpsServer });
 export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
+  app.use(cors(corsOptions));
+  app.use(express.json());
+  app.use(endpointRouter);
+  app.use(apiLimiter);
   httpsServer.listen(PORT, () => {
     console.log(`Server is running on https://irregularterminal.com`);
   });
