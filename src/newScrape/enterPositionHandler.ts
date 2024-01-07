@@ -20,8 +20,8 @@ import {
 } from './classInstance.js';
 import TreeNews from './treeNews.js';
 import { appEmit } from './treeNews.js';
-import { dataFrontEnd } from './server.js';
-// import { dataFrontEnd } from './classInstance.js';
+// import { dataFrontEnd } from './server.js';
+import { dataFrontEnd } from './classInstance.js';
 
 const treeNews = new TreeNews(process.env.TREENEWS);
 treeNews.startPing();

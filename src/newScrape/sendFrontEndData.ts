@@ -4,9 +4,9 @@ import { PriceData, TerminalLog, V5WsData } from '../interface.js';
 class FrontEndWebsocket {
   private ws: WebSocket.Server;
 
-  constructor(wsServer: WebSocket.Server) {
-    // this.ws = new WebSocket.Server({ port: 8080 });
-    this.ws = wsServer;
+  constructor() {
+    this.ws = new WebSocket.Server({ port: 8080 });
+    // this.ws = wsServer;
     this.startPriceWebsocket();
   }
 
