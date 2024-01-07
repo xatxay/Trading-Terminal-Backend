@@ -1,5 +1,5 @@
 import express, { Express } from 'express';
-import cors from 'cors';
+// import cors from 'cors';
 import endpointRouter from './endpointRouter.js';
 import rateLimit from 'express-rate-limit';
 import https from 'https';
@@ -41,7 +41,7 @@ const wsServer = new WebSocket.Server({ server: httpsServer });
 export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
-  app.use(cors({ origin: true }));
+  // app.use(cors({ origin: '*' }));
   app.use(express.json());
   app.use(endpointRouter);
   app.use(apiLimiter);
