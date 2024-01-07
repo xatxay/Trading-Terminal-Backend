@@ -1,8 +1,8 @@
 import { WebsocketClient } from 'bybit-api';
-import { dataFrontEnd } from './classInstance.js';
 import EventEmitter from 'events';
 import { extractPriceData } from './utils.js';
 import { subscribeKline, unSubscribeKline } from './utils.js';
+import { dataFrontEnd } from './server.js';
 
 class KlineClient extends EventEmitter {
   private klineClient: WebsocketClient;

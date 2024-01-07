@@ -15,12 +15,12 @@ import { PriceData, TreeNewsMessage } from '../interface.js';
 import {
   bybitAccount,
   bybitWsClient,
-  dataFrontEnd,
   klineWs,
   openAiClass,
 } from './classInstance.js';
 import TreeNews from './treeNews.js';
 import { appEmit } from './treeNews.js';
+import { dataFrontEnd } from './server.js';
 
 const treeNews = new TreeNews(process.env.TREENEWS);
 treeNews.startPing();
