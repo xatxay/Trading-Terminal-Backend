@@ -24,10 +24,10 @@ const PORT = Number(process.env.PORT) || 8080;
 //   credentials: true,
 // };
 
-const corsOptions = {
-  origin: 'https://irregularterminal.netlify.app',
-  credentials: true,
-};
+// const corsOptions = {
+//   origin: 'https://irregularterminal.netlify.app',
+//   credentials: true,
+// };
 
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
 const certificatePath = process.env.CERTIFICATE_PATH;
@@ -41,7 +41,7 @@ const wsServer = new WebSocket.Server({ server: httpsServer });
 export const dataFrontEnd = new FrontEndWebsocket(wsServer);
 
 const startServer = (): void => {
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.json());
   app.use(endpointRouter);
   app.use(apiLimiter);
