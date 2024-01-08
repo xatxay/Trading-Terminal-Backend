@@ -1,6 +1,6 @@
 # Irregular Trading Terminal
 
-A one click execution news trading terminal with addition option for news headline sentiment analyze and automate trading with AI.
+A one click execution news trading terminal with addition option for news headline sentiment analyze and automate trading with AI. [try it out](https://irregularterminal.netlify.app/)
 
 ![image](https://github.com/xatxay/newsscrape/assets/29783278/ce4cdbe5-363b-4e67-9399-67074c3f8232)
 
